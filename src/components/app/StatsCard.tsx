@@ -1,120 +1,106 @@
+"use client"
 import React from 'react'
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import { TrendingUpIcon } from 'lucide-react'
-const ProgressCard: React.FC = () => {
-  // Mock weight data for the past 30 days
-  const weightData = [
-    {
-      day: '1',
-      weight: 185,
-    },
-    {
-      day: '5',
-      weight: 184,
-    },
-    {
-      day: '10',
-      weight: 183,
-    },
-    {
-      day: '15',
-      weight: 182.5,
-    },
-    {
-      day: '20',
-      weight: 181,
-    },
-    {
-      day: '25',
-      weight: 180,
-    },
-    {
-      day: '30',
-      weight: 179,
-    },
-  ]
+  FootprintsIcon,
+  DropletsIcon,
+  FlameIcon,
+  HeartIcon,
+  BedIcon,
+  ActivityIcon,
+} from 'lucide-react'
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar'
+import 'react-circular-progressbar/dist/styles.css'
+interface StatsCardProps {
+  title: string
+  value: string
+  target?: string
+  icon: string
+  trend?: number
+}
+const StatsCard: React.FC<StatsCardProps> = ({
+  title,
+  value,
+  target,
+  icon,
+  trend,
+}) => {
+  const renderIcon = () => {
+    switch (icon) {
+      case 'footprints':
+        return <FootprintsIcon size={24} className="text-blue-500" />
+      case 'droplets':
+        return <DropletsIcon size={24} className="text-blue-500" />
+      case 'flame':
+        return <FlameIcon size={24} className="text-orange-500" />
+      case 'heart':
+        return <HeartIcon size={24} className="text-red-500" />
+      case 'bed':
+        return <BedIcon size={24} className="text-indigo-500" />
+      default:
+        return <ActivityIcon size={24} className="text-green-500" />
+    }
+  }
+  const percentage = target
+    ? Math.min(
+        Math.round(
+          (parseFloat(value.replace(/,/g, '')) /
+            parseFloat(target.replace(/,/g, ''))) *
+            100,
+        ),
+        100,
+      )
+    : 100
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Weight Progress</h2>
-        <div className="flex items-center text-green-500">
-          <TrendingUpIcon size={20} className="mr-1" />
-          <span className="font-medium">-6 lbs</span>
-        </div>
-      </div>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={weightData}
-            margin={{
-              top: 5,
-              right: 5,
-              left: 5,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="day"
-              tickLine={false}
-              axisLine={false}
-              tick={{
-                fontSize: 12,
-              }}
-              tickFormatter={(day) => `Day ${day}`}
-            />
-            <YAxis
-              domain={['dataMin - 2', 'dataMax + 2']}
-              tickLine={false}
-              axisLine={false}
-              tick={{
-                fontSize: 12,
-              }}
-            />
-            <Tooltip
-              labelFormatter={(day) => `Day ${day}`}
-              formatter={(value) => [`${value} lbs`, 'Weight']}
-            />
-            <Line
-              type="monotone"
-              dataKey="weight"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{
-                r: 4,
-                strokeWidth: 2,
-              }}
-              activeDot={{
-                r: 6,
-                strokeWidth: 2,
-              }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="mt-6 flex justify-between">
+      <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-sm text-gray-500">Starting Weight</p>
-          <p className="text-lg font-semibold text-gray-800">185 lbs</p>
+          <h3 className="text-gray-500 font-medium">{title}</h3>
+          <div className="flex items-baseline mt-1">
+            <p className="text-2xl font-bold text-gray-800">{value}</p>
+            {target && (
+              <p className="ml-2 text-sm text-gray-500">of {target}</p>
+            )}
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-gray-500">Current Weight</p>
-          <p className="text-lg font-semibold text-gray-800">179 lbs</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Goal Weight</p>
-          <p className="text-lg font-semibold text-gray-800">170 lbs</p>
-        </div>
+        {renderIcon()}
       </div>
+      {target && (
+        <div className="flex items-center justify-between">
+          <div className="w-24 h-24">
+            <CircularProgressbar
+              value={percentage}
+              text={`${percentage}%`}
+              styles={buildStyles({
+                pathColor: '#3b82f6',
+                textColor: '#1f2937',
+                trailColor: '#e5e7eb',
+              })}
+            />
+          </div>
+          <div className="flex-1 ml-4">
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-500 rounded-full"
+                style={{
+                  width: `${percentage}%`,
+                }}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-gray-500">Daily Progress</p>
+              <p className="text-xs font-medium text-blue-600">
+                {value} / {target}
+              </p>
+            </div>
+            {trend && (
+              <p className="text-xs text-green-500 mt-2">
+                +{trend}% from last week
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-export default ProgressCard
+export default StatsCard

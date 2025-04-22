@@ -1,4 +1,8 @@
+'use client'
+
 import React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import {
   HomeIcon,
   DumbbellIcon,
@@ -10,63 +14,117 @@ import {
   HelpCircleIcon,
   LogOutIcon,
   XIcon,
+  Headphones,
+  Sparkle,
 } from 'lucide-react'
+
 interface SidebarProps {
   activePage: string
   setActivePage: (page: string) => void
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
 }
+
 const Sidebar: React.FC<SidebarProps> = ({
   activePage,
   setActivePage,
   isOpen,
   setIsOpen,
 }) => {
+  const pathname = usePathname();
+  
+  // Map route paths to their corresponding pages
+  const routeMap = {
+    'dashboard': '/home',
+    'workouts': '/workouts',
+    'nutrition': '/nutrition',
+    'blogs': '/blogs',
+    'calendar': '/calendar',
+    'profile': '/profile',
+    'settings': '/settings',
+    'help': '/help',
+    'recipes': '/recipes',
+    'meditation': '/meditation',
+    'yoga': '/yoga',
+  };
+  
   const navItems = [
     {
       name: 'dashboard',
+      path: '/home',
       icon: <HomeIcon size={20} />,
       label: 'Dashboard',
     },
     {
       name: 'workouts',
+      path: '/workouts',
       icon: <DumbbellIcon size={20} />,
       label: 'Workouts',
     },
     {
       name: 'nutrition',
+      path: '/nutrition',
       icon: <UtensilsIcon size={20} />,
       label: 'Nutrition',
     },
     {
+      name: 'recipes',
+      path: '/recipes',
+      icon: <UtensilsIcon size={20} />,
+      label: 'Recipes',
+    },
+    {
+      name: 'meditation',
+      path: '/meditation',
+      icon: <Headphones size={20} />,
+      label: 'Meditation',
+    },
+    {
+      name: 'yoga',
+      path: '/yoga',
+      icon: <Sparkle />,
+      label: 'Yoga',
+    },
+    {
       name: 'blogs',
+      path: '/blogs',
       icon: <FileTextIcon size={20} />,
       label: 'Blogs',
     },
     {
       name: 'calendar',
+      path: '/calendar',
       icon: <CalendarIcon size={20} />,
       label: 'Calendar',
     },
     {
       name: 'profile',
+      path: '/profile',
       icon: <UserIcon size={20} />,
       label: 'Profile',
     },
   ]
+  
   const secondaryNavItems = [
     {
       name: 'settings',
+      path: '/settings',
       icon: <SettingsIcon size={20} />,
       label: 'Settings',
     },
     {
       name: 'help',
+      path: '/help',
       icon: <HelpCircleIcon size={20} />,
       label: 'Help',
     },
   ]
+  
+  // Helper function to check if a path is active
+  const isActive = (path: string) => {
+    return pathname === path || pathname === path + '/';
+  };
+  
   return (
     <>
       {/* {isOpen && (
@@ -76,11 +134,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       )} */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-full w-64 bg-white shadow-lg lg:shadow-none flex flex-col z-30 transform transition-transform duration-200 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow-lg lg:shadow-none flex flex-col z-30 transform transition-transform duration-200 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
-        <div className="flex items-center justify-between  border-b border-gray-200">
+        <div className="flex items-center justify-end p-2 lg:hidden border-b border-gray-200">
           <button
-            className="lg:hidden display:none p-2 hover:bg-gray-100 rounded-lg"
+            className="p-2 hover:bg-gray-100 rounded-lg"
             onClick={() => setIsOpen(false)}
           >
             <XIcon size={20} />
@@ -89,17 +147,18 @@ const Sidebar: React.FC<SidebarProps> = ({
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           <div className="space-y-1">
             {navItems.map((item) => (
-              <button
+              <Link
                 key={item.name}
+                href={item.path}
+                className={`flex items-center w-full px-3 py-2 rounded-lg transition-colors ${isActive(item.path) ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
                 onClick={() => {
-                  setActivePage(item.name)
-                  setIsOpen(false)
+                  setActivePage(item.name);
+                  setIsOpen(false);
                 }}
-                className={`flex items-center w-full px-3 py-2 rounded-lg transition-colors ${activePage === item.name ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
               >
                 <span className="min-w-[20px]">{item.icon}</span>
                 <span className="font-medium ml-3">{item.label}</span>
-              </button>
+              </Link>
             ))}
           </div>
           <div className="mt-8 pt-4 border-t border-gray-200">
@@ -108,17 +167,18 @@ const Sidebar: React.FC<SidebarProps> = ({
             </p>
             <div className="space-y-1">
               {secondaryNavItems.map((item) => (
-                <button
+                <Link
                   key={item.name}
+                  href={item.path}
+                  className={`flex items-center w-full px-3 py-2 rounded-lg transition-colors ${isActive(item.path) ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
                   onClick={() => {
-                    setActivePage(item.name)
-                    setIsOpen(false)
+                    setActivePage(item.name);
+                    setIsOpen(false);
                   }}
-                  className={`flex items-center w-full px-3 py-2 rounded-lg transition-colors ${activePage === item.name ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   <span className="min-w-[20px]">{item.icon}</span>
                   <span className="font-medium ml-3">{item.label}</span>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
