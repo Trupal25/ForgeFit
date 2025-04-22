@@ -12,7 +12,7 @@ ForgeFit is a web application for managing fitness routines, tracking workouts, 
 ## Technologies
 
 - **Frontend**: React, TypeScript, Next.js
-- **Backend**: Node.js, Express
+- **Backend**: bun.js, Express, Next.js Router
 - **Database**: PostgreSQL with Prisma ORM
 - **Styling**: Tailwind CSS
 
@@ -20,7 +20,7 @@ ForgeFit is a web application for managing fitness routines, tracking workouts, 
 
 ### Prerequisites
 
-- Node.js (14+)
+- node.js (18+)
 - PostgreSQL
 - A code editor (e.g., VS Code)
 
