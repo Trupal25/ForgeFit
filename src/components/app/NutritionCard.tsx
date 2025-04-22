@@ -78,7 +78,7 @@ const NutritionCard: React.FC = () => {
           {
             name: 'Protein',
             value: food.protein,
-            color: '#4ade80',
+            color: '#FFCE56',
           },
           {
             name: 'Carbs',
