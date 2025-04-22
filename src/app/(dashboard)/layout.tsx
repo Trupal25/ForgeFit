@@ -60,7 +60,7 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
                 </div>
                 <div className='nav-right flex'>
                     <Bell className="mr-4 rounded-2xl align-middle p-2 w-[32px] h-[32px] bg-blue-100"/>
-                    <a href="https://github.com/Trupal" target="_blank" rel="noopener noreferrer">
+                    <a href="https://github.com/Trupal25/ForgeFit" target="_blank" rel="noopener noreferrer">
                         <Image src="/assets/github-mark.svg" alt='github' width={30} height={30}/>
                     </a>
                 </div>
