@@ -48,6 +48,12 @@ const BLOG_DATA: BlogPost[] = [
     date: "April 10, 2025"
   }
 ];
+// TODO: Add a search bar to the page
+// TODO: Add a filter to the page
+// TODO: Add a sort to the page
+// TODO: Add a pagination to the page
+// TODO: Add a blog post to the page
+// TODO: Change from hardcoded to fetching from database
 
 export default function BlogsPage() {
   return (

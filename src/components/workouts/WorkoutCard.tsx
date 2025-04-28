@@ -19,6 +19,10 @@ export interface WorkoutItem {
   duration: number;
   calories: number;
   muscleGroups: string[];
+  imageUrl: string;
+  videoUrl: string;
+  equipment: string[];
+  instructions: string[];
   isFavorite: boolean;
   completions: number;
   rating: number;

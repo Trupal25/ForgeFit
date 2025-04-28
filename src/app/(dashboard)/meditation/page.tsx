@@ -92,6 +92,7 @@ const MEDITATION_DATA: MeditationSession[] = [
     audioUrl: "/assets/audio/body-scan.mp3"
   }
 ];
+// TODO: make thos dynamic
 
 // Available filters
 const CATEGORIES = ["All", "Mindfulness", "Stress Reduction", "Sleep", "Focus", "Compassion", "Relaxation"];

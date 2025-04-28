@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import WorkoutCard, { WorkoutItem } from '@/components/workouts/WorkoutCard';
-import ScheduleWorkoutModal from '@/components/ScheduleWorkoutModal';
+import { ScheduleWorkoutModal } from '@/components/workouts/ScheduleWorkoutModal';
 
 // Sample workout data
 const sampleWorkouts: WorkoutItem[] = [
@@ -16,6 +16,10 @@ const sampleWorkouts: WorkoutItem[] = [
     completions: 8,
     rating: 4.8,
     description: "A comprehensive strength workout targeting all major muscle groups for overall body development.",
+    imageUrl: "/images/workouts/full-body-strength.jpg",
+    videoUrl: "/videos/workouts/full-body-strength.mp4",
+    equipment: ["Barbell", "Dumbbells", "Bench", "Pull-up Bar"],
+    instructions: ["Perform each exercise in sequence with proper form.", "Rest between sets as needed.", "Complete all sets before moving to the next exercise."],
     exercises: [
       { name: "Barbell Squat", sets: 3, reps: "8-10", restTime: 90 },
       { name: "Bench Press", sets: 3, reps: "8-10", restTime: 90 },
@@ -36,6 +40,10 @@ const sampleWorkouts: WorkoutItem[] = [
     completions: 4,
     rating: 4.5,
     description: "Intense interval training to maximize calorie burn and improve cardiovascular endurance.",
+    imageUrl: "/images/workouts/hiit-cardio.jpg",
+    videoUrl: "/videos/workouts/hiit-cardio.mp4",
+    equipment: [],
+    instructions: ["Perform each exercise for the specified time.", "Rest for the indicated rest period.", "Complete all rounds before finishing."],
     exercises: [
       { name: "Burpees", sets: 1, reps: "45 sec", restTime: 15 },
       { name: "Mountain Climbers", sets: 1, reps: "45 sec", restTime: 15 },
@@ -56,6 +64,10 @@ const sampleWorkouts: WorkoutItem[] = [
     completions: 15,
     rating: 4.7,
     description: "Strengthen your core and improve stability with this targeted ab workout.",
+    imageUrl: "/images/workouts/core-crusher.jpg",
+    videoUrl: "/videos/workouts/core-crusher.mp4",
+    equipment: ["Mat", "Ab Wheel"],
+    instructions: ["Focus on engaging your core throughout each exercise.", "Maintain proper form to avoid injury.", "Complete all sets before moving to the next exercise."],
     exercises: [
       { name: "Plank", sets: 3, reps: "45 sec hold", restTime: 30 },
       { name: "Russian Twists", sets: 3, reps: "20 total", restTime: 30 },
@@ -128,12 +140,14 @@ export default function SampleSchedulePage() {
         ))}
       </div>
       
-      <ScheduleWorkoutModal
-        workout={selectedWorkout}
-        isOpen={modalOpen}
-        onClose={handleModalClose}
-        onScheduled={handleWorkoutScheduled}
-      />
+      {selectedWorkout && (
+        <ScheduleWorkoutModal
+          workout={selectedWorkout}
+          isOpen={modalOpen}
+          onClose={handleModalClose}
+          onScheduled={handleWorkoutScheduled}
+        />
+      )}
     </div>
   );
 } 

@@ -1,5 +1,5 @@
 "use client";
-
+// Major todo figure out the calendar part and make this dynamic and refactor calendar component
 import React from 'react';
 import { Calendar, Clock, Plus } from 'lucide-react';
 
@@ -15,6 +15,8 @@ export default function CalendarPage() {
     { day: 26, name: "Upper Body Focus", time: "07:00 AM", duration: 35 },
     { day: 28, name: "Yoga Flow", time: "08:00 AM", duration: 50 },
   ];
+
+  // TODO: Change from hardcoded to fetching from database
   
   return (
     <div className="p-6">
@@ -28,10 +30,12 @@ export default function CalendarPage() {
         <div className="lg:w-2/3 bg-white rounded-xl shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">April 2025</h2>
+            {/* fetch  from db */}
             <div className="flex gap-2">
               <button className="p-2 rounded-lg hover:bg-gray-100">
                 &#8592; {/* Left arrow */}
               </button>
+              {/* here too */}
               <button className="p-2 rounded-lg hover:bg-gray-100">
                 &#8594; {/* Right arrow */}
               </button>
@@ -48,7 +52,7 @@ export default function CalendarPage() {
             ))}
             
             {/* Empty cells for days before the month starts (example: first day is Wednesday) */}
-            {Array.from({ length: 3 }, (_, i) => (
+            {Array.from({ length: 2 }, (_, i) => (
               <div key={`empty-${i}`} className="aspect-square p-1"></div>
             ))}
             

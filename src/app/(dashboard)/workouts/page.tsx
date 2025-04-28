@@ -21,6 +21,7 @@ import {
 
 // Import utility to transform data
 import { transformEntity } from '@/lib/dbUtils';
+// import { ScheduleWorkoutModal } from '@/components/workouts/ScheduleWorkoutModal';
 
 // Define types based on your Prisma schema and frontend needs for Exercise
 interface Exercise {
@@ -63,43 +64,43 @@ export default function ExercisesPage() {
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null); // Renamed from selectedWorkout
 
   // Fetch exercises from backend based on criteria
-  useEffect(() => {
-    const fetchExercises = async () => { // Renamed function
-      setIsLoading(true);
-      setError(null);
+  // useEffect(() => {
+  //   const fetchExercises = async () => { // Renamed function
+  //     setIsLoading(true);
+  //     setError(null);
       
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedMuscleGroup !== 'All') params.append('muscleGroups', selectedMuscleGroup);
-      if (selectedDifficulty !== 'All') params.append('difficultyLevel', selectedDifficulty);
-      // TODO: Add equipment filter if needed
+  //     const params = new URLSearchParams();
+  //     if (searchTerm) params.append('search', searchTerm);
+  //     if (selectedMuscleGroup !== 'All') params.append('muscleGroups', selectedMuscleGroup);
+  //     if (selectedDifficulty !== 'All') params.append('difficultyLevel', selectedDifficulty);
+  //     // TODO: Add equipment filter if needed
 
-      try {
-        const response = await fetch(`/api/exercises?${params.toString()}`);
-        if (!response.ok) {
-          // Attempt to read error message from response body
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+  //     try {
+  //       const response = await fetch(`/api/exercises?${params.toString()}`);
+  //       if (!response.ok) {
+  //         // Attempt to read error message from response body
+  //         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+  //         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  //       }
+  //       const data = await response.json();
         
-        // Apply transformation for muscleGroups and equipment from string to array
-        const transformedData = data.map((item: any) => transformEntity(item, ['muscleGroups', 'equipment']));
+  //       // Apply transformation for muscleGroups and equipment from string to array
+  //       const transformedData = data.map((item: any) => transformEntity(item, ['muscleGroups', 'equipment']));
         
-        setExercises(transformedData); // Update state
-      } catch (err: any) {
-        console.error("Error fetching exercises:", err);
-        setError(`Failed to fetch exercises: ${err.message}`);
-        setExercises([]); // Clear exercises on error
-      }
+  //       setExercises(transformedData); // Update state
+  //     } catch (err: any) {
+  //       console.error("Error fetching exercises:", err);
+  //       setError(`Failed to fetch exercises: ${err.message}`);
+  //       setExercises([]); // Clear exercises on error
+  //     }
       
-      setIsLoading(false);
-    };
+  //     setIsLoading(false);
+  //   };
     
-    fetchExercises();
+  //   fetchExercises();
 
-    // Dependencies for useEffect - refetch when filters or search term changes
-  }, [searchTerm, selectedMuscleGroup, selectedDifficulty]); // Updated dependencies
+  //   // Dependencies for useEffect - refetch when filters or search term changes
+  // }, [searchTerm, selectedMuscleGroup, selectedDifficulty]); // Updated dependencies
 
   // Toggle favorite status (This needs a new API endpoint for exercises if not already done)
   const toggleFavorite = async (id: number) => {

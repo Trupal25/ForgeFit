@@ -10,7 +10,13 @@ interface CardProps {
   clickable?: boolean;
 }
 
-const Card: React.FC<CardProps> = ({
+interface CardComponent extends React.FC<CardProps> {
+  Header: React.FC<{ children: React.ReactNode; className?: string }>;
+  Body: React.FC<{ children: React.ReactNode; className?: string }>;
+  Footer: React.FC<{ children: React.ReactNode; className?: string }>;
+}
+
+const Card: CardComponent = ({
   children,
   className = '',
   onClick,
