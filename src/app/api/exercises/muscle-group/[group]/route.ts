@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as exerciseService from '@/lib/exercises';
+import * as exerciseService from '@/lib/db/models/exercises';
 
 export async function GET(
   request: NextRequest,

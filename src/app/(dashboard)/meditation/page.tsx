@@ -4,9 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
-  Clock, 
   ChevronDown, 
-  Plus, 
   Headphones
 } from 'lucide-react';
 import MeditationCard, { MeditationSession } from '@/components/meditation/MeditationCard';

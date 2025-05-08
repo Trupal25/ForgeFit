@@ -1,8 +1,5 @@
-import { prisma } from './db';
-import type { PrismaClient } from '@prisma/client';
-
-// Define User type from Prisma
-type User = PrismaClient['user']['create']['data'];
+import prisma from '../../../lib/prisma';
+import type { PrismaClient, Prisma } from '@prisma/client';
 
 /**
  * Get a user by ID
@@ -31,7 +28,7 @@ export async function getUserByEmail(email: string) {
 /**
  * Create a new user
  */
-export async function createUser(userData: Partial<User>) {
+export async function createUser(userData: Omit<Prisma.UserCreateInput, 'email'> & { email: string }) {
   return prisma.user.create({
     data: {
       ...userData,
@@ -48,7 +45,7 @@ export async function createUser(userData: Partial<User>) {
 /**
  * Update user data
  */
-export async function updateUser(id: string, data: Partial<User>) {
+export async function updateUser(id: string, data: Prisma.UserUpdateInput) {
   return prisma.user.update({
     where: { id },
     data,
@@ -88,10 +85,10 @@ export async function getUserFavorites(userId: string) {
   });
 
   return {
-    workouts: workouts.map((fw: any) => fw.workout),
-    meditations: meditations.map((fm: any) => fm.meditation),
-    yogaSessions: yogaSessions.map((fy: any) => fy.yoga),
-    recipes: recipes.map((fr: any) => fr.recipe),
+    workouts: workouts.map((fw) => fw.workout),
+    meditations: meditations.map((fm) => fm.meditation),
+    yogaSessions: yogaSessions.map((fy) => fy.yoga),
+    recipes: recipes.map((fr) => fr.recipe),
   };
 }
 

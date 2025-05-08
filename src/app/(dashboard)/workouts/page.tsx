@@ -1,26 +1,25 @@
 "use client";
 
+// Clock, Plus, 
+// Star, 
+// StarHalf,
+// Flame, 
+// Heart,
+// Save,
+// Trash2,
+// Calendar,
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
   Dumbbell, 
-  Clock, 
-  Flame, 
   ChevronDown, 
-  Plus, 
-  Star, 
-  StarHalf,
   BarChart,
-  Heart,
-  Save,
-  Trash2,
-  Calendar,
   Bookmark
 } from 'lucide-react';
 
 // Import utility to transform data
-import { transformEntity } from '@/lib/dbUtils';
+// import { transformEntity } from '@/lib/dbUtils';
 // import { ScheduleWorkoutModal } from '@/components/workouts/ScheduleWorkoutModal';
 
 // Define types based on your Prisma schema and frontend needs for Exercise

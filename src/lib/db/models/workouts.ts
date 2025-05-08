@@ -1,8 +1,5 @@
-import { prisma } from './db';
-import type { PrismaClient } from '@prisma/client';
-
-// Define Workout type from Prisma
-type Workout = PrismaClient['workout']['create']['data'];
+import prisma from '../../../lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Get all workouts with optional filtering
@@ -30,9 +27,12 @@ export async function getWorkouts(
   }
   
   if (muscleGroups && muscleGroups.length > 0 && !muscleGroups.includes('All')) {
-    whereClause.muscleGroups = {
-      hasSome: muscleGroups,
-    };
+    // Create OR conditions for each muscle group
+    whereClause.OR = muscleGroups.map(group => ({
+      muscleGroups: {
+        contains: group,
+      }
+    }));
   }
   
   return prisma.workout.findMany({
@@ -73,7 +73,15 @@ export async function getWorkoutById(id: number) {
  * Create a new workout
  */
 export async function createWorkout(
-  workoutData: Partial<Workout>,
+  workoutData: Omit<Prisma.WorkoutCreateInput, 'exercises'> & {
+    title: string;
+    description: string;
+    category: string;
+    difficulty: string;
+    duration: number;
+    calories: number;
+    muscleGroups: string;
+  },
   exerciseData?: Array<{
     exerciseId: number;
     sets: number;
@@ -111,7 +119,7 @@ export async function createWorkout(
  */
 export async function updateWorkout(
   id: number,
-  workoutData: Partial<Workout>,
+  workoutData: Prisma.WorkoutUpdateInput,
   exerciseData?: Array<{
     id?: number;
     exerciseId: number;

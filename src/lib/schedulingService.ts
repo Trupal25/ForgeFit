@@ -1,6 +1,6 @@
 "use client";
 
-import { prisma } from './db';
+import { prisma } from './prisma';
 
 // Basic type definitions to match the database schema
 interface Workout {

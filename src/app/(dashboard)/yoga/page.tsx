@@ -1,12 +1,10 @@
 "use client";
-import Image from 'next/image'; 
+// import Image from 'next/image'; 
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
-  Clock, 
   ChevronDown, 
-  Plus, 
 } from 'lucide-react';
 import YogaCard, { YogaSession } from '@/components/yoga/YogaCard';
 
