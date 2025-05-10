@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { SearchIcon } from 'lucide-react'
+import { SearchIcon, Loader2 } from 'lucide-react'
 import {
   PieChart,
   Pie,
@@ -10,114 +10,102 @@ import {
   Legend,
   Tooltip,
 } from 'recharts'
+
+type NutritionItem = {
+  name: string;
+  calories: number;
+  serving_size_g: number;
+  fat_total_g: number;
+  fat_saturated_g: number;
+  protein_g: number;
+  sodium_mg: number;
+  potassium_mg: number;
+  cholesterol_mg: number;
+  carbohydrates_total_g: number;
+  fiber_g: number;
+  sugar_g: number;
+}
+
+type NutritionResponse = {
+  items: NutritionItem[];
+}
+
 const NutritionCard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [foodData, setFoodData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   
-  // Mock food database
-  const mockFoods = {
-    'chicken breast': {
-      protein: 31,
-      carbs: 0,
-      fat: 3.6,
-    },
-    'brown rice': {
-      protein: 5,
-      carbs: 45,
-      fat: 1.8,
-    },
-    salmon: {
-      protein: 25,
-      carbs: 0,
-      fat: 13,
-    },
-    banana: {
-      protein: 1.3,
-      carbs: 27,
-      fat: 0.4,
-    },
-    broccoli: {
-      protein: 2.8,
-      carbs: 7,
-      fat: 0.4,
-    },
-    egg: {
-      protein: 6,
-      carbs: 0.6,
-      fat: 5,
-    },
-    avocado: {
-      protein: 2,
-      carbs: 9,
-      fat: 15,
-    },
-    oatmeal: {
-      protein: 5,
-      carbs: 27,
-      fat: 3,
-    },
-    'greek yogurt': {
-      protein: 10,
-      carbs: 4,
-      fat: 0.4,
-    },
-    'sweet potato': {
-      protein: 2,
-      carbs: 20,
-      fat: 0.1,
-    },
-  }
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    const normalizedSearch = searchTerm.toLowerCase()
-    if (mockFoods[normalizedSearch as keyof typeof mockFoods]) {
-      const food = mockFoods[normalizedSearch as keyof typeof mockFoods]
-      setFoodData({
-        name: searchTerm.toLowerCase(),
-        macros: [
-          {
-            name: 'Protein',
-            value: food.protein,
-            color: '#FFCE56',
-          },
-          {
-            name: 'Carbs',
-            value: food.carbs,
-            color: '#60a5fa',
-          },
-          {
-            name: 'Fat',
-            value: food.fat,
-            color: '#f87171',
-          },
-        ],
-        calories: Math.round(food.protein * 4 + food.carbs * 4 + food.fat * 9),
+    if (!searchTerm.trim()) return
+    
+    setLoading(true)
+    setError('')
+    
+    try {
+      const response = await fetch('/api/nutrition', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          search: searchTerm
+        })
       })
-    } else {
-      // If food not found, set example data
-      setFoodData({
-        name: searchTerm.toLowerCase(),
-        macros: [
-          {
-            name: 'Protein',
-            value: 15,
-            color: '#FFCE56',
-          },
-          {
-            name: 'Carbs',
-            value: 30,
-            color: '#60a5fa',
-          },
-          {
-            name: 'Fat',
-            value: 8,
-            color: '#f87171',
-          },
-        ],
-        calories: 252,
-      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to fetch nutrition data')
+      }
+      
+      const data: NutritionResponse = await response.json()
+      console.log('API response:', data)
+      
+      if (data.items && data.items.length > 0) {
+        const item = data.items[0]
+        setFoodData({
+          name: item.name,
+          macros: [
+            {
+              name: 'Protein',
+              value: Math.round(item.protein_g * 10) / 10,
+              color: '#FFCE56',
+            },
+            {
+              name: 'Carbs',
+              value: Math.round(item.carbohydrates_total_g * 10) / 10,
+              color: '#60a5fa',
+            },
+            {
+              name: 'Fat',
+              value: Math.round(item.fat_total_g * 10) / 10,
+              color: '#f87171',
+            },
+          ],
+          calories: Math.round(item.calories),
+          details: {
+            servingSize: item.serving_size_g,
+            sodium: item.sodium_mg,
+            potassium: item.potassium_mg,
+            cholesterol: item.cholesterol_mg,
+            fiber: item.fiber_g,
+            sugar: item.sugar_g
+          }
+        })
+      } else {
+        setError('No nutrition data found for this food')
+        setFoodData(null)
+      }
+    } catch (err) {
+      console.error('Error fetching nutrition data:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch nutrition data')
+      setFoodData(null)
+    } finally {
+      setLoading(false)
     }
   }
+  
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -129,18 +117,26 @@ const NutritionCard: React.FC = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Enter a food (e.g., chicken breast)"
+            placeholder="Enter a food (e.g., apple, chicken, etc.)"
             className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+            disabled={loading}
           >
-            <SearchIcon size={20} />
+            {loading ? <Loader2 size={20} className="animate-spin" /> : <SearchIcon size={20} />}
           </button>
         </div>
       </form>
+      
+      {error && (
+        <div className="p-3 bg-red-100 text-red-700 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
+      
       {foodData ? (
         <div className="mt-4">
           <div className="flex justify-between items-center mb-4">
@@ -188,17 +184,39 @@ const NutritionCard: React.FC = () => {
               </div>
             ))}
           </div>
+          
+          {foodData.details && (
+            <div className="mt-6 border-t pt-4">
+              <h4 className="font-medium mb-2">Additional Information</h4>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Serving Size: <span className="font-medium">{foodData.details.servingSize}g</span></div>
+                <div>Sodium: <span className="font-medium">{foodData.details.sodium}mg</span></div>
+                <div>Fiber: <span className="font-medium">{foodData.details.fiber}g</span></div>
+                <div>Sugar: <span className="font-medium">{foodData.details.sugar}g</span></div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
+        !loading && !error && (
+          <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+            <SearchIcon size={48} className="mb-2" />
+            <p>Search for a food to see its nutritional breakdown</p>
+            <p className="text-sm mt-1">
+              Try: chicken, apple, banana, rice...
+            </p>
+          </div>
+        )
+      )}
+      
+      {loading && (
         <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-          <SearchIcon size={48} className="mb-2" />
-          <p>Search for a food to see its nutritional breakdown</p>
-          <p className="text-sm mt-1">
-            Try: chicken breast, banana, avocado...
-          </p>
+          <Loader2 size={48} className="mb-2 animate-spin" />
+          <p>Loading nutrition data...</p>
         </div>
       )}
     </div>
   )
 }
+
 export default NutritionCard

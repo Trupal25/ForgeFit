@@ -41,7 +41,7 @@ export default function SettingsPage() {
                         type="text"
                         id="firstName"
                         name="firstName"
-                        defaultValue="Trupal"
+                        defaultValue="aarav"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
@@ -67,7 +67,7 @@ export default function SettingsPage() {
                       type="email"
                       id="email"
                       name="email"
-                      defaultValue="trupal@example.com"
+                      defaultValue="aarav@example.com"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -84,7 +84,7 @@ export default function SettingsPage() {
                         type="text"
                         id="username"
                         name="username"
-                        defaultValue="trupal25"
+                        defaultValue="aarav25"
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>

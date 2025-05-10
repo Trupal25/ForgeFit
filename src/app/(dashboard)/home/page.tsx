@@ -7,7 +7,7 @@ import ProgressCard from "@/components/app/ProgressCard"
 
 export default function Home(){
     return <div>
-    <div className="text-2xl max-w-6xl mx-auto">Welcome Back, Trupal</div>
+    <div className="text-2xl max-w-6xl mx-auto">Welcome Back, Neet</div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <GoalTracker />
                 <ProgressCard />

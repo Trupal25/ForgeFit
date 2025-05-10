@@ -19,8 +19,8 @@ export default function ProfileCard(){
           <div className="pt-14 pb-6 px-6">
             <div className="flex justify-between items-start">
               <div>
-                <h2 className="text-xl font-bold">Trupal Patel</h2>
-                <p className="text-gray-500">@trupal25</p>
+                <h2 className="text-xl font-bold">Neet Patel</h2>
+                <p className="text-gray-500">@Neet</p>
               </div>
               <button className="p-2 rounded-lg hover:bg-gray-100">
                 <Edit size={18} className="text-gray-400" />
@@ -30,7 +30,7 @@ export default function ProfileCard(){
             <div className="mt-6 space-y-4">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Email</p>
-                <p>trupal@example.com</p>
+                <p>neet@example.com</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500 mb-1">Member Since</p>
