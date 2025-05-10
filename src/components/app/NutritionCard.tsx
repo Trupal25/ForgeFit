@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { SearchIcon, Loader2 } from 'lucide-react'
 import {
   PieChart,
@@ -30,18 +30,29 @@ type NutritionResponse = {
   items: NutritionItem[];
 }
 
-const NutritionCard: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('')
+interface NutritionCardProps {
+  initialQuery?: string;
+}
+
+const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
+  const [searchTerm, setSearchTerm] = useState(initialQuery)
   const [foodData, setFoodData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!searchTerm.trim()) return
+  // Perform search when initialQuery changes or on component mount if initialQuery exists
+  useEffect(() => {
+    if (initialQuery) {
+      setSearchTerm(initialQuery);
+      fetchNutritionData(initialQuery);
+    }
+  }, [initialQuery]);
+  
+  const fetchNutritionData = async (query: string) => {
+    if (!query.trim()) return;
     
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     
     try {
       const response = await fetch('/api/nutrition', {
@@ -50,20 +61,20 @@ const NutritionCard: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          search: searchTerm
+          search: query
         })
-      })
+      });
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch nutrition data')
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch nutrition data');
       }
       
-      const data: NutritionResponse = await response.json()
-      console.log('API response:', data)
+      const data: NutritionResponse = await response.json();
+      console.log('API response:', data);
       
       if (data.items && data.items.length > 0) {
-        const item = data.items[0]
+        const item = data.items[0];
         setFoodData({
           name: item.name,
           macros: [
@@ -92,19 +103,36 @@ const NutritionCard: React.FC = () => {
             fiber: item.fiber_g,
             sugar: item.sugar_g
           }
-        })
+        });
       } else {
-        setError('No nutrition data found for this food')
-        setFoodData(null)
+        setError('No nutrition data found for this food');
+        setFoodData(null);
       }
     } catch (err) {
-      console.error('Error fetching nutrition data:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch nutrition data')
-      setFoodData(null)
+      console.error('Error fetching nutrition data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch nutrition data');
+      setFoodData(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+  
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await fetchNutritionData(searchTerm);
+    
+    // Save recent search to localStorage
+    try {
+      const storedSearches = localStorage.getItem('recentNutritionSearches');
+      let recentSearches: string[] = storedSearches ? JSON.parse(storedSearches) : [];
+      
+      // Add current search to the beginning and remove duplicates
+      recentSearches = [searchTerm, ...recentSearches.filter(s => s !== searchTerm)].slice(0, 5);
+      localStorage.setItem('recentNutritionSearches', JSON.stringify(recentSearches));
+    } catch (err) {
+      console.error('Error saving search history:', err);
+    }
+  };
   
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
