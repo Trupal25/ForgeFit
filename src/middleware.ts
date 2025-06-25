@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
   // Check if the path is for public assets (exclude from auth check)
   const isPublicAsset = 
     path.startsWith('/_next') || 
-    path.startsWith('/api/') || 
+    path.startsWith('/api/auth') || 
     path.includes('.');
   
   if (isPublicAsset) {

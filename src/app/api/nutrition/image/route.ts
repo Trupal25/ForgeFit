@@ -1,5 +1,5 @@
 // app/api/upload-nutrition-image/route.ts
-import { useGeminiImageApi } from "@/lib/apiFunctions/gemini";
+import { useGeminiImageApi } from "@/lib/externalApiFunctions/gemini";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {

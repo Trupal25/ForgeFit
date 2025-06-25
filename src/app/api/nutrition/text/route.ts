@@ -1,5 +1,5 @@
-import getNutritionInfo from "@/lib/apiFunctions/calorieNinjas";
-import { useGeminiTextApi } from "@/lib/apiFunctions/gemini";
+import getNutritionInfo from "@/lib/externalApiFunctions/calorieNinjas";
+import { useGeminiTextApi } from "@/lib/externalApiFunctions/gemini";
 import { NextRequest, NextResponse } from "next/server";
 
 
