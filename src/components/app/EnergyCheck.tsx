@@ -36,7 +36,7 @@ const EnergyCheck: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        How's Your Energy Today?
+        How&apos;s Your Energy Today?
       </h2>
       <div className="grid grid-cols-3 gap-4 mb-6">
         {Object.entries(energyLevels).map(([key, { level, icon }]) => (

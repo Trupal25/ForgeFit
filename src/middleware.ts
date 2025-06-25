@@ -6,13 +6,13 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   
   // Define public paths that don't require authentication
-  const publicPaths = ['/signin', '/signup'];
+  const publicPaths = ['/signin', '/signup', '/'];
   const isPublicPath = publicPaths.includes(path);
   
   // Check if the path is for public assets (exclude from auth check)
   const isPublicAsset = 
     path.startsWith('/_next') || 
-    path.startsWith('/api/auth') || 
+    path.startsWith('/api/') || 
     path.includes('.');
   
   if (isPublicAsset) {
@@ -24,16 +24,16 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET 
   });
 
+  // Redirect authenticated users to dashboard when accessing auth pages or root
+  if (token && (isPublicPath || path === '/')) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
   // Redirect unauthenticated users to sign in page if trying to access protected routes
   if (!token && !isPublicPath) {
     const url = new URL('/signin', req.url);
     url.searchParams.set('callbackUrl', encodeURI(req.url));
     return NextResponse.redirect(url);
-  }
-
-  // Redirect authenticated users to dashboard when accessing auth pages
-  if (token && isPublicPath) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   return NextResponse.next();

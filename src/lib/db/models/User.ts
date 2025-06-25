@@ -1,5 +1,5 @@
 import prisma from '../../../lib/prisma';
-import type { PrismaClient, Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Get a user by ID
@@ -28,7 +28,7 @@ export async function getUserByEmail(email: string) {
 /**
  * Create a new user
  */
-export async function createUser(userData: Omit<Prisma.UserCreateInput, 'email'> & { email: string }) {
+export async function createUser(userData: Prisma.UserCreateManyInput) {
   return prisma.user.create({
     data: {
       ...userData,

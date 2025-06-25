@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+
 const apiKey = process.env.NINJAS_API_KEY;
 console.log(apiKey);
 

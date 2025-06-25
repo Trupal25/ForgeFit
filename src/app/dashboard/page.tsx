@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { Dumbbell, User, Calendar, TrendingUp, Settings, Search, ChevronRight } from 'lucide-react';
+import { Dumbbell, Calendar, TrendingUp, Settings, Search, ChevronRight } from 'lucide-react';
 import SignOutButton from '@/components/auth/SignOutButton';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
@@ -14,8 +14,8 @@ export default function Dashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   
-  // Array of nutrition tips
-  const nutritionTips = [
+  // Array of nutrition tips - memoized to prevent unnecessary recreation
+  const nutritionTips = useMemo(() => [
     "Protein helps repair muscles after workouts.",
     "Hydration is key for optimal performance.",
     "Healthy carbs provide energy for your workouts.",
@@ -23,7 +23,7 @@ export default function Dashboard() {
     "Antioxidants help reduce exercise-induced oxidative stress.",
     "Eating within 30 minutes post-workout maximizes recovery.",
     "Fiber helps maintain steady energy levels throughout the day."
-  ];
+  ], []);
   
   // Load a random nutrition tip
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Dashboard() {
     if (storedSearches) {
       setRecentSearches(JSON.parse(storedSearches));
     }
-  }, []);
+  }, [nutritionTips]);
   
   // Handle mobile menu toggle
   const toggleMobileMenu = () => {
@@ -65,6 +65,7 @@ export default function Dashboard() {
     }
   };
   
+  // Show loading state while session is being fetched
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -74,6 +75,12 @@ export default function Dashboard() {
         </div>
       </div>
     );
+  }
+
+  // Redirect to sign in if not authenticated
+  if (status === 'unauthenticated') {
+    window.location.href = '/signin';
+    return null;
   }
   
   return (
@@ -205,7 +212,7 @@ export default function Dashboard() {
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '60%' }}></div>
               </div>
-              <p className="text-sm text-gray-600">You're on track to reach your weekly goal of 5 workouts!</p>
+              <YoureOnTrack />
             </div>
           </div>
           
@@ -231,5 +238,11 @@ export default function Dashboard() {
         </div>
       </main>
     </div>
+  );
+}
+
+function YoureOnTrack() {
+  return (
+    <p className="text-sm text-gray-600">You&apos;re on track to reach your weekly goal of 5 workouts!</p>
   );
 } 

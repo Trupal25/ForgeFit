@@ -1,4 +1,4 @@
-import { Bell, Lock, User, Globe, Moon, Sun, LifeBuoy, LogOut } from 'lucide-react';
+import { Bell, Lock, User, Globe, Moon, LifeBuoy, LogOut } from 'lucide-react';
 
 
 export default function SettingsNav(){

@@ -73,15 +73,7 @@ export async function getWorkoutById(id: number) {
  * Create a new workout
  */
 export async function createWorkout(
-  workoutData: Omit<Prisma.WorkoutCreateInput, 'exercises'> & {
-    title: string;
-    description: string;
-    category: string;
-    difficulty: string;
-    duration: number;
-    calories: number;
-    muscleGroups: string;
-  },
+  workoutData: Prisma.WorkoutCreateInput,
   exerciseData?: Array<{
     exerciseId: number;
     sets: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Play, Clock, Heart, Star, Activity, UserCircle2 } from 'lucide-react';
+import { Play, Clock, Heart, Star, UserCircle2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 
 export interface YogaSession {

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Dumbbell, Clock, X, Edit } from 'lucide-react';
-import { WorkoutItem } from '@/components/workouts/WorkoutCard';
 
 export interface ScheduledWorkout {
   id: string;

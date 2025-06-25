@@ -8,7 +8,7 @@
 // Save,
 // Trash2,
 // Calendar,
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Search, 
   Filter, 
@@ -58,8 +58,8 @@ export default function ExercisesPage() {
   
   // State for fetched data (now exercises)
   const [exercises, setExercises] = useState<Exercise[]>([]); // Renamed from workouts
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading] = useState(true);
+  const [error] = useState<string | null>(null);
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null); // Renamed from selectedWorkout
 
   // Fetch exercises from backend based on criteria

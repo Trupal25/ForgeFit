@@ -1,20 +1,17 @@
+import { PrismaAdapter } from "@next-auth/prisma-adapter"
+import bcrypt from "bcrypt"
 import GoogleProvider from "next-auth/providers/google"
-import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import type { NextAuthOptions, User, Session } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import { getUserByEmail } from "./db/models/User";
+import "../../next-auth.d.ts";
+import prisma  from "@/lib/prisma"
 
-// Add this type declaration to fix the type error with session user id
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id?: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    }
-  }
-}
+
 
 export const authOptions: NextAuthOptions = {
+    adapter:PrismaAdapter(prisma),
     providers: [ 
         CredentialsProvider({
             name: "email",
@@ -23,19 +20,31 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                // This is a simple mock implementation for demo purposes
-                // In a real app, you would validate against your database
-                if (credentials?.email === "demo@forgefit.com" && credentials?.password === "password123") {
-                    return {
-                        id: "1",
-                        name: "Demo User",
-                        email: "demo@forgefit.com",
-                        image: "https://i.pravatar.cc/150?u=demo@forgefit.com"
+                try{
+
+                    if(!credentials?.email || !credentials.password){
+                        return null;
+                    }
+                    
+                    const user = await getUserByEmail(credentials.email);
+                    
+                    if(user && user.password) {
+                        const isMatch = await bcrypt.compare(credentials.password, user.password);
+                        if (isMatch) {
+                            return {
+                                id: user.id?.toString() ,
+                                name: user.name ,
+                                email: user.email,
+                            };
+                        }
                     };
-                }
-                
-                // Return null if user data could not be retrieved
+
                 return null;
+
+                    }catch(error){
+                         console.log("Error : ",error);    
+                         return null;
+                    }  
             }
         }),
         GoogleProvider({
@@ -44,14 +53,14 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: { token: JWT; user: User }) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         }, 
-        async session({ session, token }) {
-            if (session.user) {
+        async session({ session, token }: { session: Session; token: JWT }) {
+            if (session.user && token.id) {
                 session.user.id = token.id as string;
             }
             return session;

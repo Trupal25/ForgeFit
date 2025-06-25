@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'success';
 type ButtonSize = 'sm' | 'md' | 'lg';

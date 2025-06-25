@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import { Dumbbell, Calendar, Award, BarChart } from 'lucide-react';
 import ProfileCard from '@/components/app/ProfileCard';
 

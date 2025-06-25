@@ -30,13 +30,35 @@ type NutritionResponse = {
   items: NutritionItem[];
 }
 
+type MacroNutrient = {
+  name: string;
+  value: number;
+  color: string;
+}
+
+type NutritionDetails = {
+  servingSize: number;
+  sodium: number;
+  potassium: number;
+  cholesterol: number;
+  fiber: number;
+  sugar: number;
+}
+
+type FoodData = {
+  name: string;
+  macros: MacroNutrient[];
+  calories: number;
+  details?: NutritionDetails;
+}
+
 interface NutritionCardProps {
   initialQuery?: string;
 }
 
 const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
   const [searchTerm, setSearchTerm] = useState(initialQuery)
-  const [foodData, setFoodData] = useState<any>(null)
+  const [foodData, setFoodData] = useState<FoodData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -188,7 +210,7 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
                     `${name} ${(percent * 100).toFixed(0)}%`
                   }
                 >
-                  {foodData.macros.map((entry: any, index: number) => (
+                  {foodData.macros.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -198,7 +220,7 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-3 gap-3 mt-4">
-            {foodData.macros.map((macro: any, index: number) => (
+            {foodData.macros.map((macro, index) => (
               <div key={index} className="text-center">
                 <p className="text-sm text-gray-500">{macro.name}</p>
                 <p

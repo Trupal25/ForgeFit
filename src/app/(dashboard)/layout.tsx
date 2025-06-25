@@ -6,7 +6,6 @@ import Navbar from "@/components/app/Navbar";
 export default function DashboardLayout({children}: { children: React.ReactNode }){
     
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [activePage, setActivePage] = useState("dashboard");
     
 
     // Define navbar height for consistent spacing
@@ -26,8 +25,6 @@ export default function DashboardLayout({children}: { children: React.ReactNode 
             <div className="flex flex-1 pt-16"> {/* pt-16 to offset the fixed navbar */}
                 {/* Sidebar */}
                 <Sidebar
-                    activePage={activePage}
-                    setActivePage={setActivePage}
                     isOpen={isSidebarOpen}
                     setIsOpen={setIsSidebarOpen}
                 />

@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 import BlogCard, { BlogPost } from '@/components/blogs/BlogCard';
 
@@ -10,7 +8,8 @@ const BLOG_DATA: BlogPost[] = [
     title: "How to Maximize Your Workout Results",
     category: "Fitness Tips",
     excerpt: "Discover the most effective strategies to get the most out of your exercise routine.",
-    date: "April 22, 2025"
+    date: "April 22, 2025",
+    imageUrl:"https://i.ytimg.com/vi/3z7p-Z_Ke74/maxresdefault.jpg"
   },
   {
     id: 2,
@@ -59,8 +58,8 @@ export default function BlogsPage() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">Fitness Blogs</h1>
-        <p className="text-gray-600">Read the latest fitness articles and tips to improve your workouts.</p>
+        <h1 className="text-2xl font-bold mb-2">Knowldge Vault</h1>
+        <p className="text-gray-600">Read the latest fitness articles and tips to improve your health and nutrition.</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -106,7 +106,7 @@ export default function MeditationPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [sessions, setSessions] = useState(MEDITATION_DATA);
   const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
+  const [setCurrentlyPlaying] = useState<number | null>(null);
 
   // Filter sessions based on criteria
   useEffect(() => {
@@ -251,7 +251,7 @@ export default function MeditationPage() {
             <Headphones size={48} className="text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No meditation sessions found</h3>
             <p className="text-gray-500 text-center">
-              Try adjusting your filters or search terms to find what you're looking for.
+              Try adjusting your filters or search terms to find what you&apos;re looking for.
             </p>
           </div>
         ) : (

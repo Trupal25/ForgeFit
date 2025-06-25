@@ -1,11 +1,12 @@
 import "./globals.css";
-import { Metal_Mania } from 'next/font/google';
-import { SessionProvider } from 'next-auth/react';
+import { Inter } from 'next/font/google';
 import AuthProvider from "@/components/providers/AuthProvider";
 
-const inter = Metal_Mania({ 
-  weight:'400',
-  subsets: ['latin'] 
+// Using Inter instead of Metal_Mania which was causing connection issues
+const inter = Inter({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter'
 });
 
 export const metadata = {
@@ -20,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body >
+      <body className={inter.className}>
         <AuthProvider>
           {children}
         </AuthProvider>

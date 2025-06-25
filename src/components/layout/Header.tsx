@@ -3,14 +3,9 @@
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import { Dumbbell, User, Menu } from 'lucide-react';
-import { Metal_Mania } from 'next/font/google';
 import SignOutButton from '@/components/auth/SignOutButton';
 import Link from 'next/link';
-
-const logoFont = Metal_Mania({ 
-  weight: '400',
-  subsets: ['latin'] 
-});
+import Image from 'next/image';
 
 interface HeaderProps {
   showMobileMenu?: () => void;
@@ -23,12 +18,11 @@ export default function Header({ showMobileMenu }: HeaderProps) {
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <Dumbbell className="h-8 w-8 text-blue-600 mr-3" />
-          <Link href="/dashboard">
-            <h1 className={`text-2xl font-bold text-gray-900 ${logoFont.className}`}>ForgeFit</h1>
+          <Link href="/dashboard" className="flex items-center space-x-2">
+            <Image src="/assets/logo2.png" alt="ForgeFit" width={40} height={40} />
+            <h1 className="text-2xl font-bold text-gray-900 " >ForgeFit</h1>
           </Link>
         </div>
-        
         {status === 'authenticated' && (
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-6">
@@ -40,7 +34,13 @@ export default function Header({ showMobileMenu }: HeaderProps) {
             <div className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden mr-2">
                 {session?.user?.image ? (
-                  <img src={session.user.image} alt={session.user.name || 'User'} className="w-full h-full object-cover" />
+                  <Image 
+                    src={session.user.image} 
+                    alt={session.user.name || 'User'} 
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <User className="h-5 w-5 text-gray-500" />
                 )}

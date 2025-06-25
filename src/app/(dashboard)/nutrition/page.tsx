@@ -1,14 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 import NutritionCard from '@/components/app/NutritionCard';
 import { PlusCircle, Info } from 'lucide-react';
 
 export default function NutritionPage() {
   const [showApiInfo, setShowApiInfo] = useState(false);
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams?.get('query') || '';
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -41,7 +38,7 @@ export default function NutritionPage() {
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <NutritionCard initialQuery={initialQuery} />
+        <NutritionCard />
         <div className="bg-white p-6 rounded-xl shadow-sm">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Meal Plans</h2>
           <p className="text-gray-600 mb-4">

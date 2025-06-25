@@ -1,4 +1,3 @@
-import React from 'react';
 import Image from 'next/image';
 export interface BlogPost {
   id: number;
@@ -16,7 +15,11 @@ interface BlogCardProps {
 const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="h-48 bg-gray-200"></div>
+      <div className="h-48 bg-gray-200">
+        {blog.imageUrl && (
+          <Image src={blog.imageUrl} alt={blog.title} className="w-full h-full object-cover" width={500} height={500}/>
+        )}
+      </div>
       <div className="p-4">
         <span className="text-xs font-medium text-blue-600">{blog.category}</span>
         <h3 className="text-lg font-semibold mt-1">{blog.title}</h3>

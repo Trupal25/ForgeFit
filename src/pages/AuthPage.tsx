@@ -3,13 +3,12 @@ import LoginForm from '../components/auth/LoginForm';
 import SignupForm from '../components/auth/SignupForm';
 import AuthToggle from '../components/auth/AuthToggle';
 import { Dumbbell } from 'lucide-react';
-import Image from 'next/image';
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = React.useState(true);
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="h-screen overflow-hidden flex flex-col md:flex-row">
       {/* Left side - Image and branding for desktop */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-900 to-blue-600 flex-col justify-center items-center p-8 text-white">
         <div className="max-w-md mx-auto text-center">
@@ -43,7 +42,7 @@ const AuthPage: React.FC = () => {
       </div>
 
       {/* Right side - Forms */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 md:w-1/2 flex flex-col bg-gray-50 overflow-y-auto">
         {/* Mobile header */}
         <div className="md:hidden bg-blue-700 p-4 text-white flex items-center justify-center">
           <Dumbbell size={24} className="mr-2" />
@@ -52,10 +51,10 @@ const AuthPage: React.FC = () => {
 
         <div className="flex-1 flex flex-col justify-center items-center p-4 sm:p-8">
           <div className="w-full max-w-md">
-            <div className="bg-white rounded-xl shadow-md p-6 sm:p-8">
+            <div className="bg-white rounded-xl shadow-md px-6 sm:p-8">
               <div className="mb-8 text-center">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  {isLogin ? 'Welcome Back' : 'Join FitPeak'}
+                  {isLogin ? 'Welcome Back' : 'Join ForgeFit'}
                 </h2>
                 <p className="text-gray-600 mt-1">
                   {isLogin
@@ -66,7 +65,9 @@ const AuthPage: React.FC = () => {
 
               <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />
 
-              {isLogin ? <LoginForm /> : <SignupForm />}
+              <div className="flex-1">
+                {isLogin ? <LoginForm /> : <SignupForm />}
+              </div>
             </div>
 
             <p className="text-center text-gray-500 text-sm mt-6">
