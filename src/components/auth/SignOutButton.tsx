@@ -48,14 +48,14 @@ export default function SignOutButton({
       <button
         onClick={handleSignOut}
         disabled={isLoading}
-        className={`flex items-center px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors ${className}`}
+        className={`flex items-center px-3 py-2 text-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors ${className}`}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
         ) : (
           <LogOut className="h-4 w-4 mr-2" />
         )}
-        Sign out
+        Log out
       </button>
     );
   }

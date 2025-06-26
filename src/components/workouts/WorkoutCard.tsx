@@ -5,10 +5,22 @@ import { Clock, Flame, BarChart, Star, Heart } from 'lucide-react';
 import Card from '@/components/ui/Card';
 
 export interface WorkoutExercise {
-  name: string;
-  sets: number;
-  reps: string;
-  restTime: number;
+  id: number;
+  sets: number | null;
+  reps: string | null;
+  weight: number | null;
+  restTime: number | null;
+  notes: string | null;
+  order: number;
+  exercise: {
+    id: number;
+    name: string;
+    description: string;
+    muscleGroups: string[];
+    equipment: string;
+    difficultyLevel: string;
+    imageUrl: string | null;
+  };
 }
 
 export interface WorkoutItem {
@@ -18,32 +30,30 @@ export interface WorkoutItem {
   difficulty: string;
   duration: number;
   calories: number;
-  muscleGroups: string[];
-  imageUrl: string;
-  videoUrl: string;
-  equipment: string[];
-  instructions: string[];
-  isFavorite: boolean;
-  completions: number;
+  muscleGroups: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
   rating: number;
+  ratingCount: number;
   description: string;
   exercises: WorkoutExercise[];
+  createdAt: string;
+  updatedAt: string;
+  isFavorite?: boolean;
 }
 
 interface WorkoutCardProps {
   workout: WorkoutItem;
-  isExpanded?: boolean;
-  onToggleExpand: (id: number) => void;
   onToggleFavorite: (id: number) => void;
+  onSelect?: (workout: WorkoutItem) => void;
   onSchedule?: (workout: WorkoutItem) => void;
   onStartWorkout?: (workout: WorkoutItem) => void;
 }
 
 const WorkoutCard: React.FC<WorkoutCardProps> = ({
   workout,
-  isExpanded = false,
-  onToggleExpand,
   onToggleFavorite,
+  onSelect,
   onSchedule,
   onStartWorkout,
 }) => {
@@ -52,11 +62,17 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
     onToggleFavorite(workout.id);
   };
 
+  const handleCardClick = () => {
+    if (onSelect) {
+      onSelect(workout);
+    }
+  };
+
   return (
     <Card className="h-full">
       <div 
-        className="p-5 cursor-pointer"
-        onClick={() => onToggleExpand(workout.id)}
+        className="p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={handleCardClick}
       >
         <div className="flex justify-between items-start mb-3">
           <div>
@@ -78,9 +94,11 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
         
         <p className="text-gray-600 mb-4 line-clamp-2">{workout.description}</p>
         
-        <div className="flex flex-wrap gap-3 mb-4">
-          {workout.muscleGroups.map(group => (
-            <span key={group} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">{group}</span>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {workout.muscleGroups.split(',').map((group, index) => (
+            <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
+              {group.trim()}
+            </span>
           ))}
         </div>
         
@@ -96,75 +114,71 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
             </div>
             <div className="flex items-center gap-1 text-gray-600">
               <BarChart size={16} />
-              <span className="text-sm">{workout.completions}×</span>
+              <span className="text-sm">{workout.exercises.length} exercises</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-1">
-            <Star size={16} className="text-yellow-400 fill-current" />
-            <span className="text-sm font-medium">{workout.rating}</span>
+          {workout.rating > 0 && (
+            <div className="flex items-center gap-1">
+              <Star size={16} className="text-yellow-400 fill-current" />
+              <span className="text-sm font-medium">{workout.rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Exercise Preview */}
+        {workout.exercises.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Exercises:</h4>
+            <div className="space-y-2">
+              {workout.exercises.slice(0, 3).map((exercise) => (
+                <div key={exercise.id} className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700">{exercise.exercise.name}</span>
+                  <span className="text-gray-500">
+                    {exercise.sets}x{exercise.reps}
+                  </span>
+                </div>
+              ))}
+              {workout.exercises.length > 3 && (
+                <div className="text-xs text-gray-500">
+                  +{workout.exercises.length - 3} more exercises
+                </div>
+              )}
+            </div>
           </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-4 flex gap-2">
+          {onSchedule && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onSchedule(workout);
+              }}
+              className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+            >
+              Schedule
+            </button>
+          )}
+          
+          {onStartWorkout && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartWorkout(workout);
+              }}
+              className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+            >
+              Start
+            </button>
+          )}
         </div>
       </div>
-      
-      {isExpanded && <WorkoutExpandedView 
-        workout={workout} 
-        onSchedule={onSchedule} 
-        onStartWorkout={onStartWorkout} 
-      />}
     </Card>
   );
 };
 
-interface WorkoutExpandedViewProps {
-  workout: WorkoutItem;
-  onSchedule?: (workout: WorkoutItem) => void;
-  onStartWorkout?: (workout: WorkoutItem) => void;
-}
 
-const WorkoutExpandedView: React.FC<WorkoutExpandedViewProps> = ({ 
-  workout, 
-  onSchedule, 
-  onStartWorkout 
-}) => {
-  return (
-    <div className="p-5 border-t border-gray-100">
-      <h4 className="font-medium text-gray-700 mb-3">Exercises</h4>
-      <div className="space-y-3 mb-4">
-        {workout.exercises.map((exercise, index) => (
-          <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-800">{exercise.name}</p>
-              <span className="text-sm text-gray-500">{exercise.sets} sets × {exercise.reps}</span>
-            </div>
-            <div className="text-sm text-gray-500">{exercise.restTime}s rest</div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="flex flex-wrap gap-2">
-        {onSchedule && (
-          <button 
-            onClick={() => onSchedule(workout)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1"
-          >
-            <Clock size={16} />
-            <span>Schedule</span>
-          </button>
-        )}
-        
-        {onStartWorkout && (
-          <button 
-            onClick={() => onStartWorkout(workout)}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-1"
-          >
-            <Flame size={16} />
-            <span>Start Workout</span>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
 
 export default WorkoutCard; 

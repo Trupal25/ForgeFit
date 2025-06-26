@@ -17,6 +17,7 @@ import {
   Headphones,
   Sparkle,
 } from 'lucide-react'
+import SignOutButton from '../auth/SignOutButton'
 
 interface SidebarProps {
   isOpen: boolean
@@ -152,12 +153,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </nav>
       <div className="px-3 py-4 border-t border-gray-200">
-        <button className="flex items-center w-full px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-          <span className="min-w-[20px]">
-            <LogOutIcon size={20} />
-          </span>
-          <span className="font-medium ml-3">Log Out</span>
-        </button>
+        <SignOutButton 
+          variant="subtle" 
+          className="!flex !items-center !justify-start !w-full !px-3 !py-2 !text-gray-700 !hover:bg-gray-100 !rounded-lg !transition-colors !font-medium"
+        />
       </div>
     </aside>
   )

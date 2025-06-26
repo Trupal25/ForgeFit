@@ -129,17 +129,17 @@ export default function Dashboard() {
             </div>
             
             <form onSubmit={handleNutritionSearch} className="mb-4">
-              <div className="flex">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
                 <input
                   type="text"
                   name="searchQuery"
                   placeholder="Search for any food (e.g., apple, chicken, rice...)"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-4 py-3 sm:py-2 border border-gray-300 rounded-lg sm:rounded-l-lg sm:rounded-r-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                   required
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-3 sm:py-2 sm:px-4 bg-blue-600 text-white rounded-lg sm:rounded-l-none sm:rounded-r-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
                 >
                   <Search size={20} />
                 </button>

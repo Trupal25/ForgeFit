@@ -16,11 +16,12 @@ export default function Header({ showMobileMenu }: HeaderProps) {
   
   return (
     <header className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between">
         <div className="flex items-center">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <Image src="/assets/logo2.png" alt="ForgeFit" width={40} height={40} />
-            <h1 className="text-2xl font-bold text-gray-900 " >ForgeFit</h1>
+            <link href="https://fonts.googleapis.com/css2?family=Metal+Mania&display=swap" rel="stylesheet" />
+            <Image src="/assets/logo2.png" alt="ForgeFit" width={40} height={40} className='m-1'/>
+            <h1 className="text-3xl p-2 font-bold text-blue-700 " style={{ fontFamily: '"Metal Mania", cursive' }}>ForgeFit</h1>
           </Link>
         </div>
         {status === 'authenticated' && (

@@ -6,7 +6,7 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   
   // Define public paths that don't require authentication
-  const publicPaths = ['/signin', '/signup', '/test'];
+  const publicPaths = ['/signin', '/signup'];
   const isPublicPath = publicPaths.includes(path);
   
   // Check if the path is for public assets (exclude from auth check)

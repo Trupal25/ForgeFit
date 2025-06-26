@@ -1,145 +1,175 @@
 "use client";
 
-// Clock, Plus, 
-// Star, 
-// StarHalf,
-// Flame, 
-// Heart,
-// Save,
-// Trash2,
-// Calendar,
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
-  Dumbbell, 
+  Plus,
   ChevronDown, 
-  BarChart,
-  Bookmark
+  Clock,
+  Flame,
+  Heart,
+  Star,
+  Dumbbell,
+  Users
 } from 'lucide-react';
+import WorkoutCard from '@/components/workouts/WorkoutCard';
+import { CreateWorkoutModal } from '@/components/workouts/CreateWorkoutModal';
 
-// Import utility to transform data
-// import { transformEntity } from '@/lib/dbUtils';
-// import { ScheduleWorkoutModal } from '@/components/workouts/ScheduleWorkoutModal';
-
-// Define types based on your Prisma schema and frontend needs for Exercise
-interface Exercise {
+// Define Workout type based on our schema
+interface WorkoutExercise {
   id: number;
-  name: string;
-  description: string;
-  instructions: string;
-  muscleGroups: string[]; // Expected as array on frontend after transformation
-  equipment: string[];   // Expected as array on frontend after transformation
-  difficultyLevel: string;
-  imageUrl: string | null;
-  videoUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  // Add other fields from schema if needed
-  // For displaying, maybe add isFavorite or completions if that logic exists elsewhere
-  isFavorite?: boolean; // Assuming a way to track this on the frontend or fetch
+  sets: number | null;
+  reps: string | null;
+  weight: number | null;
+  restTime: number | null;
+  notes: string | null;
+  order: number;
+  exercise: {
+    id: number;
+    name: string;
+    description: string;
+    muscleGroups: string[];
+    equipment: string;
+    difficultyLevel: string;
+    imageUrl: string | null;
+  };
 }
 
-// Available filters (These can also potentially come from a backend API later)
-// Categories and Durations are workout filters, not directly applicable to /api/exercises
+interface Workout {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  duration: number;
+  calories: number;
+  muscleGroups: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  rating: number;
+  ratingCount: number;
+  exercises: WorkoutExercise[];
+  createdAt: string;
+  updatedAt: string;
+  isFavorite?: boolean;
+}
+
+// Filter options
+const CATEGORIES = ["All", "Strength", "Cardio", "Core", "Flexibility", "HIIT", "Full Body"];
 const DIFFICULTIES = ["All", "Beginner", "Intermediate", "Advanced"];
 const MUSCLE_GROUPS = [
   "All", "Chest", "Back", "Shoulders", "Arms", "Legs", "Abs", 
-  "Full Body", "Quads", "Hamstrings", "Glutes", "Calves", "Obliques", "Lower Back"
+  "Full Body", "Quads", "Hamstrings", "Glutes", "Calves"
 ];
 
-export default function ExercisesPage() {
+export default function WorkoutsPage() {
   // State for search and filters
   const [searchTerm, setSearchTerm] = useState("");
-  // Removed selectedCategory and selectedDuration states
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedDifficulty, setSelectedDifficulty] = useState("All");
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("All");
+  const [maxDuration, setMaxDuration] = useState<number | undefined>(undefined);
   const [showFilters, setShowFilters] = useState(false);
   
-  // State for fetched data (now exercises)
-  const [exercises, setExercises] = useState<Exercise[]>([]); // Renamed from workouts
-  const [isLoading] = useState(true);
-  const [error] = useState<string | null>(null);
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null); // Renamed from selectedWorkout
+  // State for workouts data
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
 
-  // Fetch exercises from backend based on criteria
-  // useEffect(() => {
-  //   const fetchExercises = async () => { // Renamed function
-  //     setIsLoading(true);
-  //     setError(null);
-      
-  //     const params = new URLSearchParams();
-  //     if (searchTerm) params.append('search', searchTerm);
-  //     if (selectedMuscleGroup !== 'All') params.append('muscleGroups', selectedMuscleGroup);
-  //     if (selectedDifficulty !== 'All') params.append('difficultyLevel', selectedDifficulty);
-  //     // TODO: Add equipment filter if needed
-
-  //     try {
-  //       const response = await fetch(`/api/exercises?${params.toString()}`);
-  //       if (!response.ok) {
-  //         // Attempt to read error message from response body
-  //         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-  //         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-  //       }
-  //       const data = await response.json();
-        
-  //       // Apply transformation for muscleGroups and equipment from string to array
-  //       const transformedData = data.map((item: any) => transformEntity(item, ['muscleGroups', 'equipment']));
-        
-  //       setExercises(transformedData); // Update state
-  //     } catch (err: any) {
-  //       console.error("Error fetching exercises:", err);
-  //       setError(`Failed to fetch exercises: ${err.message}`);
-  //       setExercises([]); // Clear exercises on error
-  //     }
-      
-  //     setIsLoading(false);
-  //   };
+  // Fetch workouts from backend
+  const fetchWorkouts = async () => {
+    setIsLoading(true);
+    setError(null);
     
-  //   fetchExercises();
+    const params = new URLSearchParams();
+    if (selectedCategory !== 'All') params.append('category', selectedCategory);
+    if (selectedDifficulty !== 'All') params.append('difficulty', selectedDifficulty);
+    if (maxDuration) params.append('duration', maxDuration.toString());
+    if (selectedMuscleGroup !== 'All') params.append('muscleGroups', selectedMuscleGroup);
 
-  //   // Dependencies for useEffect - refetch when filters or search term changes
-  // }, [searchTerm, selectedMuscleGroup, selectedDifficulty]); // Updated dependencies
-
-  // Toggle favorite status (This needs a new API endpoint for exercises if not already done)
-  const toggleFavorite = async (id: number) => {
-    // TODO: Implement exercise favorite toggle using a backend API
-    console.log(`Toggle favorite for exercise ID: ${id}`);
-    // Optimistically update state (optional)
-    setExercises(exercises.map(exercise => 
-      exercise.id === id 
-        ? {...exercise, isFavorite: !exercise.isFavorite} 
-        : exercise
-    ));
-    // Call backend API here
     try {
-       // Example: await fetch(`/api/exercises/${id}/favorite`, { method: 'POST' });
-       // Need to create this API route if it doesn't exist
-    } catch (err) {
-       console.error("Failed to toggle favorite status", err);
-       // Revert optimistic update or show error
+      const response = await fetch(`/api/workout?${params.toString()}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setWorkouts(data.workouts || []);
+    } catch (err: any) {
+      console.error("Error fetching workouts:", err);
+      setError(`Failed to fetch workouts: ${err.message}`);
+      setWorkouts([]);
     }
+    
+    setIsLoading(false);
   };
 
-  // Handle exercise selection (to show details)
-  const handleExerciseSelect = (id: number) => {
-    // This could fetch detailed exercise data from /api/exercises/[id]
-    setSelectedExerciseId(selectedExerciseId === id ? null : id); // Updated state variable
+  // Effect to fetch workouts when filters change
+  useEffect(() => {
+    fetchWorkouts();
+  }, [selectedCategory, selectedDifficulty, selectedMuscleGroup, maxDuration]);
+
+  // Filter workouts based on search term (client-side)
+  const filteredWorkouts = workouts.filter(workout =>
+    workout.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    workout.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Toggle favorite status
+  const toggleFavorite = async (id: number) => {
+    // TODO: Implement workout favorite toggle
+    setWorkouts(workouts.map(workout => 
+      workout.id === id 
+        ? {...workout, isFavorite: !workout.isFavorite} 
+        : workout
+    ));
   };
 
-  // Render stars based on rating (If exercises had a rating field, currently only Workouts do in schema)
-  // const renderStars = (rating: number) => { ... };
-  // Removing renderStars as Exercise model doesn't have rating based on the schema provided earlier.
+  // Handle successful workout creation
+  const handleWorkoutCreated = (newWorkout: Workout) => {
+    setWorkouts([newWorkout, ...workouts]);
+    setShowCreateModal(false);
+  };
+
+  // Render workout stats
+  const renderStats = (workout: Workout) => (
+    <div className="flex items-center gap-4 text-sm text-gray-600">
+      <div className="flex items-center gap-1">
+        <Clock size={16} />
+        <span>{workout.duration} min</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Flame size={16} />
+        <span>{workout.calories} cal</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Dumbbell size={16} />
+        <span>{workout.exercises.length} exercises</span>
+      </div>
+      {workout.rating > 0 && (
+        <div className="flex items-center gap-1">
+          <Star size={16} fill="currentColor" className="text-yellow-500" />
+          <span>{workout.rating.toFixed(1)}</span>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="p-6">
       <div className="mb-8">
-        {/* Updated title and description to reflect Exercises */}
-        <h1 className="text-2xl font-bold mb-2">Exercises</h1>
-        <p className="text-gray-600">Browse and discover exercises for your fitness routine.</p>
+        <h1 className="text-3xl font-bold mb-2">Workouts</h1>
+        <p className="text-gray-600">
+          Discover premade workouts or create your own custom training routine.
+        </p>
       </div>
       
-      {/* Search and Filter Bar */}
+      {/* Search and Actions Bar */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative flex-1">
@@ -148,133 +178,184 @@ export default function ExercisesPage() {
             </div>
             <input
               type="text"
-              placeholder="Search exercises..."
+              placeholder="Search workouts..."
               className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <button 
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2 transition-colors"
             onClick={() => setShowFilters(!showFilters)}
           >
-            <Filter size={18} /> Filter
-            <ChevronDown size={16} className={`transition-transform ${showFilters ? 'rotate-180' : 'rotate-0'}`} />
+            <Filter size={18} /> 
+            Filters
+            <ChevronDown 
+              size={16} 
+              className={`transition-transform ${showFilters ? 'rotate-180' : 'rotate-0'}`} 
+            />
           </button>
-          {/* 
-          // TODO: Implement Add New Exercise Modal/Page
-          <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2">
-            <Plus size={18} /> Add New Exercise
+          <button 
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+            onClick={() => setShowCreateModal(true)}
+          >
+            <Plus size={18} /> 
+            Create Workout
           </button>
-          */}
         </div>
         
-        {/* Filter Options - Adjusted to match /api/exercises filters */}
+        {/* Filter Options */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-            {/* Difficulty Filter */}
-            <select 
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-              value={selectedDifficulty}
-              onChange={(e) => setSelectedDifficulty(e.target.value)}
-            >
-              <option value="All">All Difficulties</option>
-              {DIFFICULTIES.filter(d => d !== 'All').map(difficulty => (
-                <option key={difficulty} value={difficulty}>{difficulty}</option>
-              ))}
-            </select>
-            
-            {/* Muscle Group Filter */}
-            <select 
-              className="px-4 py-2 border border-gray-300 rounded-lg"
-              value={selectedMuscleGroup}
-              onChange={(e) => setSelectedMuscleGroup(e.target.value)}
-            >
-              <option value="All">All Muscle Groups</option>
-               {MUSCLE_GROUPS.filter(mg => mg !== 'All').map(muscleGroup => (
-                <option key={muscleGroup} value={muscleGroup}>{muscleGroup}</option>
-              ))}
-            </select>
-
-            {/* TODO: Add Equipment Filter (Need to add state and filter option) */}
-
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  {CATEGORIES.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Difficulty Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedDifficulty}
+                  onChange={(e) => setSelectedDifficulty(e.target.value)}
+                >
+                  {DIFFICULTIES.map(difficulty => (
+                    <option key={difficulty} value={difficulty}>{difficulty}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Muscle Group Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Muscle Group</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={selectedMuscleGroup}
+                  onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+                >
+                  {MUSCLE_GROUPS.map(muscleGroup => (
+                    <option key={muscleGroup} value={muscleGroup}>{muscleGroup}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {/* Duration Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Max Duration</label>
+                <select 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={maxDuration || ""}
+                  onChange={(e) => setMaxDuration(e.target.value ? parseInt(e.target.value) : undefined)}
+                >
+                  <option value="">Any Duration</option>
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">1 hour</option>
+                  <option value="90">1.5 hours</option>
+                </select>
+              </div>
+              
+              {/* Clear Filters */}
+              <div className="flex items-end">
+                <button 
+                  className="w-full px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    setSelectedCategory("All");
+                    setSelectedDifficulty("All");
+                    setSelectedMuscleGroup("All");
+                    setMaxDuration(undefined);
+                  }}
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Stats Summary */}
+      {!isLoading && !error && (
+        <div className="mb-6 flex items-center gap-6 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Users size={16} />
+            <span>{filteredWorkouts.length} workouts found</span>
+          </div>
+          {searchTerm && (
+            <span>Showing results for "{searchTerm}"</span>
+          )}
+        </div>
+      )}
       
       {/* Loading and Error States */}
-      {isLoading && <p className="text-center text-gray-500">Loading exercises...</p>}
-      {error && <p className="text-center text-red-500">Error: {error}</p>}
-      {!isLoading && !error && exercises.length === 0 && (
-        <p className="text-center text-gray-500">No exercises found matching your criteria.</p>
+      {isLoading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-500">Loading workouts...</p>
+          </div>
+        </div>
+      )}
+      
+      {error && (
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">Error: {error}</p>
+          <button 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={fetchWorkouts}
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+      
+      {!isLoading && !error && filteredWorkouts.length === 0 && (
+        <div className="text-center py-12">
+          <Dumbbell size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 mb-4">No workouts found matching your criteria.</p>
+          <button 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => setShowCreateModal(true)}
+          >
+            Create Your First Workout
+          </button>
+        </div>
       )}
 
-      {/* Exercise List */}
-      {!isLoading && !error && exercises.length > 0 && (
+      {/* Workouts Grid */}
+      {!isLoading && !error && filteredWorkouts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Note: Iterating through 'exercises' state */}
-          {exercises.map(exercise => (
-            <div 
-              key={exercise.id} 
-              className="bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => handleExerciseSelect(exercise.id)} // Use exercise.id
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  {/* Use exercise.name and exercise.muscleGroups */}
-                  <h3 className="text-lg font-semibold mb-1">{exercise.name}</h3>
-                  <p className="text-sm text-gray-500">{exercise.muscleGroups.join(', ')}</p> {/* Display muscleGroups array */}
-                </div>
-                {/* Favorite Toggle - Needs backend implementation for exercises */}
-                {/* Re-enable and implement toggleFavorite logic when backend is ready */}
-                 <button 
-                   className={`p-1 rounded-full ${exercise.isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
-                   onClick={(e) => {
-                     e.stopPropagation(); // Prevent card click
-                     toggleFavorite(exercise.id);
-                   }}
-                 >
-                   {/* Using Bookmark icon for now, Heart is also an option */}
-                   <Bookmark size={20} fill={exercise.isFavorite ? "currentColor" : "none"}/>
-                 </button>
-
-              </div>
-              
-              {/* Display Difficulty Level and Equipment */}
-              <div className="flex items-center text-sm text-gray-600 mt-2">
-                 <BarChart size={16} className="mr-1" />
-                 <span>{exercise.difficultyLevel}</span>
-                 <Dumbbell size={16} className="ml-4 mr-1" />
-                 <span>{exercise.equipment.join(', ')}</span> {/* Display equipment array */}
-              </div>
-
-              {/* Exercise Details (Shown when selected) */}
-              {selectedExerciseId === exercise.id && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-gray-700 mb-3">{exercise.description}</p>
-                  <h4 className="font-semibold mb-2">Instructions:</h4>
-                  {/* Simple split by period and space for instructions - may need refinement */}
-                  <ol className="list-decimal list-inside text-gray-700">
-                    {exercise.instructions.split('. ').map((step, index) => step.trim() && <li key={index}>{step.trim()}</li>)}
-                  </ol>
-
-                  {/* TODO: Display related workouts if fetched */}
-                  {/* TODO: Add options to add to workout, schedule, etc. */}
-
-                </div>
-              )}
-
-            </div>
+          {filteredWorkouts.map(workout => (
+            <WorkoutCard
+              key={workout.id}
+              workout={workout}
+              onToggleFavorite={toggleFavorite}
+              onSelect={() => setSelectedWorkout(workout)}
+            />
           ))}
         </div>
       )}
 
-      {/* TODO: Implement Modals for Adding/Editing Exercises if needed on this page */}
-
+      {/* Create Workout Modal */}
+      {showCreateModal && (
+        <CreateWorkoutModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onWorkoutCreated={handleWorkoutCreated}
+        />
+      )}
     </div>
   );
 }
-
-// Removed unused mock data and workout-specific filter constants
-// Removed WorkoutCard and ScheduleWorkoutModal imports as they are workout specific
-// Removed WorkoutCard and ScheduleWorkoutModal components at the end of the file
