@@ -92,12 +92,19 @@ model Workout {
   ratingCount  Int      @default(0)
 }
 
+model Muscle {
+  id          Int        @id
+  name        String     @unique
+  description String?
+  exercises   Exercise[] // Backref
+}
+
 model Exercise {
   id              Int      @id @default(autoincrement())
   name            String
   description     String
   instructions    String
-  muscleGroups    String   // Primary muscles targeted (comma-separated)
+  muscleGroups    String[]   // Primary muscles targeted (comma-separated)
   equipment       String   // Required equipment (comma-separated)
   difficultyLevel String   // Beginner, Intermediate, Advanced
   imageUrl        String?
@@ -106,7 +113,9 @@ model Exercise {
   updatedAt       DateTime @updatedAt
   
   // Relationships
-  workouts WorkoutExercise[]
+  muscleId        Int
+  muscle          Muscle  @relation(fields: [muscleId], references: [id])
+  workouts        WorkoutExercise[]
 }
 
 model WorkoutExercise {

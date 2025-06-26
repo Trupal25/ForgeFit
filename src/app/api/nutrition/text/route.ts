@@ -1,3 +1,4 @@
+import useCalorieNinjas from "@/lib/externalApiFunctions/calorieNinjas";
 import getNutritionInfo from "@/lib/externalApiFunctions/calorieNinjas";
 import { useGeminiTextApi } from "@/lib/externalApiFunctions/gemini";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,8 +19,8 @@ export async function POST(request: NextRequest) {
             );
         }
         
-        // return await useCalorieNinjas(search);
-        return await useGeminiTextApi(search)    
+        return await useCalorieNinjas(search);
+        // return await useGeminiTextApi(search)    
        
     
     } catch (error) {
