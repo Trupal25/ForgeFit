@@ -46,6 +46,8 @@ interface WorkoutCardProps {
   workout: WorkoutItem;
   onToggleFavorite: (id: number) => void;
   onSelect?: (workout: WorkoutItem) => void;
+  onEdit?: (workout: WorkoutItem) => void;
+  onDelete?: (workout: WorkoutItem) => void;
   onSchedule?: (workout: WorkoutItem) => void;
   onStartWorkout?: (workout: WorkoutItem) => void;
 }
@@ -54,6 +56,8 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
   workout,
   onToggleFavorite,
   onSelect,
+  onEdit,
+  onDelete,
   onSchedule,
   onStartWorkout,
 }) => {
@@ -69,9 +73,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full ">
       <div 
-        className="p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="p-5 cursor-pointer hover:bg-gray-50 transition-colors flex flex-col h-full"
         onClick={handleCardClick}
       >
         <div className="flex justify-between items-start mb-3">
@@ -92,9 +96,9 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
           </button>
         </div>
         
-        <p className="text-gray-600 mb-4 line-clamp-2">{workout.description}</p>
+        <p className="text-gray-600 mb-4 line-clamp-2 flex-shrink-0">{workout.description}</p>
         
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4 flex-shrink-0">
           {workout.muscleGroups.split(',').map((group, index) => (
             <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md">
               {group.trim()}
@@ -128,13 +132,13 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
 
         {/* Exercise Preview */}
         {workout.exercises.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-gray-100 flex-grow">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Exercises:</h4>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {workout.exercises.slice(0, 3).map((exercise) => (
                 <div key={exercise.id} className="flex justify-between items-center text-sm">
-                  <span className="text-gray-700">{exercise.exercise.name}</span>
-                  <span className="text-gray-500">
+                  <span className="text-gray-700 truncate flex-1 mr-2">{exercise.exercise.name}</span>
+                  <span className="text-gray-500 flex-shrink-0">
                     {exercise.sets}x{exercise.reps}
                   </span>
                 </div>
@@ -149,14 +153,38 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-auto flex flex-wrap gap-2">
+          {onEdit && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(workout);
+              }}
+              className="flex-1 min-w-[80px] px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors"
+            >
+              Edit
+            </button>
+          )}
+          
+          {onDelete && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(workout);
+              }}
+              className="flex-1 min-w-[80px] px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg transition-colors"
+            >
+              Delete
+            </button>
+          )}
+          
           {onSchedule && (
             <button 
               onClick={(e) => {
                 e.stopPropagation();
                 onSchedule(workout);
               }}
-              className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+              className="flex-1 min-w-[80px] px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded-lg transition-colors"
             >
               Schedule
             </button>
@@ -168,7 +196,7 @@ const WorkoutCard: React.FC<WorkoutCardProps> = ({
                 e.stopPropagation();
                 onStartWorkout(workout);
               }}
-              className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+              className="flex-1 min-w-[80px] px-3 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg transition-colors"
             >
               Start
             </button>

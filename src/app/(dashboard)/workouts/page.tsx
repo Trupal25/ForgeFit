@@ -13,8 +13,9 @@ import {
   Dumbbell,
   Users
 } from 'lucide-react';
-import WorkoutCard from '@/components/workouts/WorkoutCard';
+import WorkoutCard, { WorkoutItem } from '@/components/workouts/WorkoutCard';
 import { CreateWorkoutModal } from '@/components/workouts/CreateWorkoutModal';
+import { WorkoutDetailModal } from '@/components/workouts/WorkoutDetailModal';
 
 // Define Workout type based on our schema
 interface WorkoutExercise {
@@ -79,6 +80,8 @@ export default function WorkoutsPage() {
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState<Workout | null>(null);
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
 
   // Fetch workouts from backend
@@ -120,20 +123,88 @@ export default function WorkoutsPage() {
     workout.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Toggle favorite status
+  // Toggle favorite status (optimized)
   const toggleFavorite = async (id: number) => {
-    // TODO: Implement workout favorite toggle
+    // Optimistic update - update UI immediately
     setWorkouts(workouts.map(workout => 
       workout.id === id 
         ? {...workout, isFavorite: !workout.isFavorite} 
         : workout
     ));
+
+    try {
+      const response = await fetch('/api/workout/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workoutId: id })
+      });
+
+      if (!response.ok) {
+        // Revert optimistic update on error
+        setWorkouts(workouts.map(workout => 
+          workout.id === id 
+            ? {...workout, isFavorite: !workout.isFavorite} 
+            : workout
+        ));
+        throw new Error('Failed to toggle favorite');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
-  // Handle successful workout creation
+  // Delete workout
+  const deleteWorkout = async (workout: Workout) => {
+    if (!confirm(`Are you sure you want to delete "${workout.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/workout', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: workout.id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete workout');
+      }
+
+      // Remove from local state
+      setWorkouts(workouts.filter(w => w.id !== workout.id));
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      alert('Failed to delete workout. Please try again.');
+    }
+  };
+
+  // Handle successful workout creation/update
   const handleWorkoutCreated = (newWorkout: Workout) => {
-    setWorkouts([newWorkout, ...workouts]);
+    if (editingWorkout) {
+      // Update existing workout
+      setWorkouts(workouts.map(w => w.id === newWorkout.id ? newWorkout : w));
+      setEditingWorkout(null);
+    } else {
+      // Add new workout
+      setWorkouts([newWorkout, ...workouts]);
+    }
     setShowCreateModal(false);
+  };
+
+  // Handle workout selection for detailed view
+  const handleWorkoutSelect = (workout: Workout) => {
+    setSelectedWorkout(workout);
+    setShowDetailModal(true);
+  };
+
+  // Handle workout edit
+  const handleWorkoutEdit = (workout: Workout) => {
+    setEditingWorkout(workout);
+    setShowCreateModal(true);
   };
 
   // Render workout stats
@@ -336,24 +407,42 @@ export default function WorkoutsPage() {
 
       {/* Workouts Grid */}
       {!isLoading && !error && filteredWorkouts.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
           {filteredWorkouts.map(workout => (
             <WorkoutCard
               key={workout.id}
               workout={workout}
               onToggleFavorite={toggleFavorite}
-              onSelect={() => setSelectedWorkout(workout)}
+              onSelect={() => handleWorkoutSelect(workout)}
+              onEdit={() => handleWorkoutEdit(workout)}
+              onDelete={() => deleteWorkout(workout)}
             />
           ))}
         </div>
       )}
 
-      {/* Create Workout Modal */}
+      {/* Create/Edit Workout Modal */}
       {showCreateModal && (
         <CreateWorkoutModal
           isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
+          onClose={() => {
+            setShowCreateModal(false);
+            setEditingWorkout(null);
+          }}
           onWorkoutCreated={handleWorkoutCreated}
+          editWorkout={editingWorkout}
+        />
+      )}
+
+      {/* Workout Detail Modal */}
+      {showDetailModal && (
+        <WorkoutDetailModal
+          workout={selectedWorkout}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedWorkout(null);
+          }}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { createWorkout, getWorkouts, updateWorkout, deleteWorkout } from "@/lib/db/models/workouts";
+import { createWorkout, getWorkouts, getWorkoutsWithFavorites, updateWorkout, deleteWorkout } from "@/lib/db/models/workouts";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -75,8 +75,14 @@ export async function GET(request: NextRequest) {
         const duration = durationParam ? parseInt(durationParam) : undefined;
         const muscleGroups = muscleGroupsParam ? muscleGroupsParam.split(',').map(g => g.trim()) : undefined;
         
-        // Fetch workouts with filtering
-        const workouts = await getWorkouts(category || undefined, difficulty || undefined, duration, muscleGroups);
+        // Fetch workouts with filtering and favorite status
+        const workouts = await getWorkoutsWithFavorites(
+            session.user.id,
+            category || undefined, 
+            difficulty || undefined, 
+            duration, 
+            muscleGroups
+        );
         
         return NextResponse.json({
             workouts,

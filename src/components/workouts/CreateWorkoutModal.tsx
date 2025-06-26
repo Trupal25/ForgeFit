@@ -24,12 +24,16 @@ interface Exercise {
   imageUrl: string | null;
 }
 
+interface ExerciseSet {
+  id: string;
+  reps: string;
+  weight?: number;
+}
+
 interface WorkoutExercise {
   exerciseId: number;
   exercise: Exercise;
-  sets: number;
-  reps: string;
-  weight?: number;
+  sets: ExerciseSet[];
   restTime?: number;
   notes?: string;
 }
@@ -38,6 +42,7 @@ interface CreateWorkoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onWorkoutCreated: (workout: any) => void;
+  editWorkout?: any; // Workout to edit (optional)
 }
 
 const CATEGORIES = ["Strength", "Cardio", "Core", "Flexibility", "HIIT", "Full Body"];
@@ -46,8 +51,11 @@ const DIFFICULTIES = ["Beginner", "Intermediate", "Advanced"];
 export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
   isOpen,
   onClose,
-  onWorkoutCreated
+  onWorkoutCreated,
+  editWorkout
 }) => {
+  const isEditing = !!editWorkout;
+  
   // Workout details state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -65,6 +73,52 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize form for editing
+  useEffect(() => {
+    if (editWorkout && isOpen) {
+      setTitle(editWorkout.title || "");
+      setDescription(editWorkout.description || "");
+      setCategory(editWorkout.category || "Strength");
+      setDifficulty(editWorkout.difficulty || "Intermediate");
+      setEstimatedDuration(editWorkout.duration || 30);
+      
+      // Parse exercises from the edit workout
+      const parsedExercises: WorkoutExercise[] = editWorkout.exercises?.map((exercise: any) => {
+        let setDetails: ExerciseSet[] = [];
+        let userNotes = "";
+        
+        try {
+          if (exercise.notes) {
+            const parsed = JSON.parse(exercise.notes);
+            setDetails = parsed.setDetails || [];
+            userNotes = parsed.userNotes || "";
+          }
+        } catch (e) {
+          // Fallback for old format
+          userNotes = exercise.notes || "";
+          const repsArray = exercise.reps?.split(',') || ['10'];
+          for (let i = 0; i < (exercise.sets || 1); i++) {
+            setDetails.push({
+              id: `${exercise.exerciseId}-set-${i + 1}`,
+              reps: repsArray[i] || repsArray[0] || '10',
+              weight: exercise.weight || undefined
+            });
+          }
+        }
+        
+        return {
+          exerciseId: exercise.exerciseId,
+          exercise: exercise.exercise,
+          sets: setDetails,
+          restTime: exercise.restTime,
+          notes: userNotes
+        };
+      }) || [];
+      
+      setSelectedExercises(parsedExercises);
+    }
+  }, [editWorkout, isOpen]);
 
   // Search for exercises
   useEffect(() => {
@@ -100,9 +154,11 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
     const workoutExercise: WorkoutExercise = {
       exerciseId: exercise.id,
       exercise,
-      sets: 3,
-      reps: "10",
-      weight: undefined,
+      sets: [
+        { id: `${exercise.id}-set-1`, reps: "10", weight: undefined },
+        { id: `${exercise.id}-set-2`, reps: "10", weight: undefined },
+        { id: `${exercise.id}-set-3`, reps: "10", weight: undefined }
+      ],
       restTime: 90,
       notes: ""
     };
@@ -117,8 +173,49 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
     setSelectedExercises(selectedExercises.filter(we => we.exerciseId !== exerciseId));
   };
 
-  // Update exercise details
-  const updateExercise = (exerciseId: number, field: keyof WorkoutExercise, value: any) => {
+  // Add a new set to an exercise
+  const addSet = (exerciseId: number) => {
+    setSelectedExercises(selectedExercises.map(we => 
+      we.exerciseId === exerciseId 
+        ? { 
+            ...we, 
+            sets: [...we.sets, { 
+              id: `${exerciseId}-set-${we.sets.length + 1}`, 
+              reps: "10", 
+              weight: undefined 
+            }] 
+          }
+        : we
+    ));
+  };
+
+  // Remove a set from an exercise
+  const removeSet = (exerciseId: number, setId: string) => {
+    setSelectedExercises(selectedExercises.map(we => 
+      we.exerciseId === exerciseId 
+        ? { ...we, sets: we.sets.filter(set => set.id !== setId) }
+        : we
+    ));
+  };
+
+  // Update a specific set
+  const updateSet = (exerciseId: number, setId: string, field: keyof ExerciseSet, value: any) => {
+    setSelectedExercises(selectedExercises.map(we => 
+      we.exerciseId === exerciseId 
+        ? { 
+            ...we, 
+            sets: we.sets.map(set => 
+              set.id === setId 
+                ? { ...set, [field]: value }
+                : set
+            ) 
+          }
+        : we
+    ));
+  };
+
+  // Update exercise-level details (rest time, notes)
+  const updateExercise = (exerciseId: number, field: 'restTime' | 'notes', value: any) => {
     setSelectedExercises(selectedExercises.map(we => 
       we.exerciseId === exerciseId 
         ? { ...we, [field]: value }
@@ -135,7 +232,7 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
     return Array.from(muscleGroups).join(", ") || "Full Body";
   };
 
-  // Create workout
+  // Create or update workout
   const handleCreateWorkout = async () => {
     if (!title.trim() || !description.trim() || selectedExercises.length === 0) {
       setError("Please fill in all required fields and add at least one exercise");
@@ -147,6 +244,7 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
 
     try {
       const workoutData = {
+        ...(isEditing && { id: editWorkout.id }),
         title: title.trim(),
         description: description.trim(),
         category,
@@ -155,16 +253,19 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
         muscleGroups: getEstimatedMuscleGroups(),
         exercises: selectedExercises.map((we, index) => ({
           exerciseId: we.exerciseId,
-          sets: we.sets,
-          reps: we.reps,
-          weight: we.weight,
+          sets: we.sets.length,
+          reps: we.sets.map(set => set.reps).join(','), // Store all reps as comma-separated
+          weight: we.sets.find(set => set.weight)?.weight || undefined, // Average or first weight as fallback
           restTime: we.restTime,
-          notes: we.notes || undefined
+          notes: JSON.stringify({
+            setDetails: we.sets,
+            userNotes: we.notes || ""
+          })
         }))
       };
 
       const response = await fetch('/api/workout', {
-        method: 'POST',
+        method: isEditing ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -173,7 +274,7 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create workout');
+        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'create'} workout`);
       }
 
       const result = await response.json();
@@ -205,7 +306,9 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">Create Custom Workout</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {isEditing ? 'Edit Workout' : 'Create Custom Workout'}
+          </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -368,44 +471,68 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Sets</label>
-                        <input
-                          type="number"
-                          value={workoutExercise.sets}
-                          onChange={(e) => updateExercise(workoutExercise.exerciseId, 'sets', parseInt(e.target.value) || 1)}
-                          min="1"
-                          max="10"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        />
+                    {/* Individual Sets Configuration */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h5 className="font-medium text-gray-900">Sets Configuration</h5>
+                        <button
+                          type="button"
+                          onClick={() => addSet(workoutExercise.exerciseId)}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center gap-1"
+                        >
+                          <Plus size={16} />
+                          Add Set
+                        </button>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Reps</label>
-                        <input
-                          type="text"
-                          value={workoutExercise.reps}
-                          onChange={(e) => updateExercise(workoutExercise.exerciseId, 'reps', e.target.value)}
-                          placeholder="e.g., 10 or 8-12"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
+                      <div className="space-y-3">
+                        {workoutExercise.sets.map((set, setIndex) => (
+                          <div key={set.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="text-sm font-medium text-gray-600 w-12">
+                              Set {setIndex + 1}
+                            </div>
+                            
+                            <div className="flex-1">
+                              <label className="block text-xs text-gray-600 mb-1">Reps</label>
+                              <input
+                                type="text"
+                                value={set.reps}
+                                onChange={(e) => updateSet(workoutExercise.exerciseId, set.id, 'reps', e.target.value)}
+                                placeholder="10"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
 
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Weight (kg)</label>
-                        <input
-                          type="number"
-                          value={workoutExercise.weight || ""}
-                          onChange={(e) => updateExercise(workoutExercise.exerciseId, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
-                          placeholder="Optional"
-                          step="0.5"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
-                        />
-                      </div>
+                            <div className="flex-1">
+                              <label className="block text-xs text-gray-600 mb-1">Weight (kg)</label>
+                              <input
+                                type="number"
+                                value={set.weight || ""}
+                                onChange={(e) => updateSet(workoutExercise.exerciseId, set.id, 'weight', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                placeholder="Optional"
+                                step="0.5"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
 
+                            {workoutExercise.sets.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeSet(workoutExercise.exerciseId, set.id)}
+                                className="text-red-500 hover:text-red-700 transition-colors p-1"
+                              >
+                                <Minus size={16} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Rest Time */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Rest (sec)</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Rest Between Sets (sec)</label>
                         <input
                           type="number"
                           value={workoutExercise.restTime || ""}
@@ -474,12 +601,12 @@ export const CreateWorkoutModal: React.FC<CreateWorkoutModalProps> = ({
             {isCreating ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Creating...
+                {isEditing ? 'Updating...' : 'Creating...'}
               </>
             ) : (
               <>
                 <Save size={18} />
-                Create Workout
+                {isEditing ? 'Update Workout' : 'Create Workout'}
               </>
             )}
           </button>

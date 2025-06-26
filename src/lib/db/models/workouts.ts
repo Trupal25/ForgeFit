@@ -51,6 +51,61 @@ export async function getWorkouts(
 }
 
 /**
+ * Get all workouts with favorite status for a specific user
+ */
+export async function getWorkoutsWithFavorites(
+  userId: string,
+  category?: string,
+  difficulty?: string,
+  duration?: number,
+  muscleGroups?: string[]
+) {
+  let whereClause: any = {};
+  
+  if (category && category !== 'All') {
+    whereClause.category = category;
+  }
+  
+  if (difficulty && difficulty !== 'All') {
+    whereClause.difficulty = difficulty;
+  }
+  
+  if (duration) {
+    whereClause.duration = {
+      lte: duration,
+    };
+  }
+  
+  if (muscleGroups && muscleGroups.length > 0 && !muscleGroups.includes('All')) {
+    // Create OR conditions for each muscle group
+    whereClause.OR = muscleGroups.map(group => ({
+      muscleGroups: {
+        contains: group,
+      }
+    }));
+  }
+  
+  return prisma.workout.findMany({
+    where: whereClause,
+    include: {
+      exercises: {
+        include: {
+          exercise: true,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+      favoriteBy: {
+        where: {
+          userId: userId,
+        },
+      },
+    },
+  });
+}
+
+/**
  * Get a workout by ID
  */
 export async function getWorkoutById(id: number) {
