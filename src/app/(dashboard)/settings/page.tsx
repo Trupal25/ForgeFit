@@ -1,9 +1,84 @@
 "use client";
 
 import SettingsNav from '@/components/app/SettingsNav';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+
+interface UserData {
+  name: string;
+  email: string;
+  username: string;
+}
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
+  const [userData, setUserData] = useState<UserData>({
+    name: '',
+    email: '',
+    username: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchUserData();
+    }
+  }, [session]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/profile');
+      if (response.ok) {
+        const result = await response.json();
+        setUserData({
+          name: result.data.user.name || '',
+          email: result.data.user.email || '',
+          username: result.data.user.username || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: userData.name,
+          username: userData.username
+        })
+      });
+
+      if (response.ok) {
+        setMessage('Settings saved successfully!');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage('Failed to save settings. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      setMessage('An error occurred. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChange = (field: keyof UserData, value: string) => {
+    setUserData(prev => ({ ...prev, [field]: value }));
+  };
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -30,33 +105,31 @@ export default function SettingsPage() {
             </div>
             
             <div className="p-6">
-              <form>
+              {message && (
+                <div className={`mb-4 p-3 rounded-lg text-sm ${
+                  message.includes('success') 
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-red-100 text-red-700 border border-red-200'
+                }`}>
+                  {message}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        id="firstName"
-                        name="firstName"
-                        defaultValue="trupal"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        id="lastName"
-                        name="lastName"
-                        defaultValue="Patel"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={userData.name}
+                      onChange={(e) => handleChange('name', e.target.value)}
+                      disabled={loading}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                    />
                   </div>
                   
                   <div>
@@ -67,9 +140,11 @@ export default function SettingsPage() {
                       type="email"
                       id="email"
                       name="email"
-                      defaultValue="trupal@example.com"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      value={userData.email}
+                      disabled
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                   </div>
                   
                   <div>
@@ -84,8 +159,10 @@ export default function SettingsPage() {
                         type="text"
                         id="username"
                         name="username"
-                        defaultValue="trupal25"
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value={userData.username}
+                        onChange={(e) => handleChange('username', e.target.value)}
+                        disabled={loading}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                       />
                     </div>
                   </div>
@@ -108,26 +185,23 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      name="bio"
-                      rows={3}
-                      defaultValue="Fitness enthusiast focusing on strength training and weight management."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    ></textarea>
-                    <p className="mt-1 text-sm text-gray-500">Brief description for your profile.</p>
-                  </div>
+
                   
                   <div className="pt-4 border-t border-gray-100 flex items-center justify-end space-x-3">
-                    <button type="button" className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50">
-                      Cancel
+                    <button 
+                      type="button" 
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                      disabled={saving}
+                    >
+                      Reset
                     </button>
-                    <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                      Save Changes
+                    <button 
+                      type="submit" 
+                      disabled={loading || saving}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>

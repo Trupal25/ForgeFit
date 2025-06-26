@@ -54,6 +54,7 @@ model User {
   goals               UserGoal[]
   dailyStats          DailyStats[]
   progressSummaries   ProgressSummary[]
+  workoutStreak       WorkoutStreak?
 }
 
 model UserSettings {
@@ -275,12 +276,23 @@ model ScheduledEvent {
   id        String   @id @default(cuid())
   userId    String
   title     String
+  description String?
   date      DateTime
   time      String
   duration  Int      // In minutes
   eventType String   // Workout, Meditation, Yoga, etc.
   completed Boolean  @default(false)
   notes     String?
+  
+  // Enhanced scheduling features
+  isRecurring    Boolean @default(false)
+  recurringType  String? // daily, weekly, monthly
+  recurringUntil DateTime?
+  parentEventId  String? // For recurring events
+  
+  // Reminders and notifications
+  reminderMinutes Int? // Minutes before event to remind
+  notificationSent Boolean @default(false)
   
   // Optional relations based on event type
   workoutId Int?
@@ -293,6 +305,29 @@ model ScheduledEvent {
   yoga   YogaSession? @relation(fields: [yogaId], references: [id])
   
   // User relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId, date])
+  @@index([userId, eventType])
+}
+
+// Workout Streak Tracking
+model WorkoutStreak {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastWorkoutDate DateTime?
+  weeklyGoal    Int      @default(3) // Target workouts per week
+  streakType    String   @default("daily") // daily, weekly
+  
+  // Streak milestones for gamification
+  totalWorkouts Int      @default(0)
+  streakStartDate DateTime?
+  
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
