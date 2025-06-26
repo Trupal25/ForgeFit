@@ -18,7 +18,7 @@ export async function getExercises(
     // Create OR conditions for each muscle group
     whereClause.OR = muscleGroups.map(group => ({
       muscleGroups: {
-        contains: group,
+        has: group,
       }
     }));
   }
@@ -88,10 +88,11 @@ export async function searchExercisesByName(searchQuery: string) {
 export async function createExercise(exerciseData: {
   name: string;
   description: string;
-  instructions: string;
-  muscleGroups: string;
+  instructions: string[];
+  muscleGroups: string[];
   equipment: string;
   difficultyLevel: string;
+  muscleId: number;
   imageUrl?: string;
   videoUrl?: string;
 }) {
@@ -126,7 +127,7 @@ export async function getExercisesByMuscleGroup(muscleGroup: string) {
   return prisma.exercise.findMany({
     where: {
       muscleGroups: {
-        contains: muscleGroup,
+        has: muscleGroup,
       },
     },
     orderBy: {

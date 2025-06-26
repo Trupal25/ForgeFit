@@ -90,7 +90,6 @@ const MEDITATION_DATA: MeditationSession[] = [
     audioUrl: "/assets/audio/body-scan.mp3"
   }
 ];
-// TODO: make thos dynamic
 
 // Available filters
 const CATEGORIES = ["All", "Mindfulness", "Stress Reduction", "Sleep", "Focus", "Compassion", "Relaxation"];
@@ -104,32 +103,33 @@ export default function MeditationPage() {
   const [selectedDuration, setSelectedDuration] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
-  const [sessions, setSessions] = useState(MEDITATION_DATA);
+  
+  // Session management state
+  const [filteredSessions, setFilteredSessions] = useState(MEDITATION_DATA);
   const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
-  const [setCurrentlyPlaying] = useState<number | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
 
   // Filter sessions based on criteria
   useEffect(() => {
-    let filteredSessions = [...MEDITATION_DATA];
+    let sessions = [...MEDITATION_DATA];
     
     // Apply search filter
     if (searchTerm) {
-      filteredSessions = filteredSessions.filter(session =>
+      sessions = sessions.filter(session =>
         session.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        session.description.toLowerCase().includes(searchTerm.toLowerCase())
+        session.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        session.instructor.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
     // Apply category filter
     if (selectedCategory !== "All") {
-      filteredSessions = filteredSessions.filter(session =>
-        session.category === selectedCategory
-      );
+      sessions = sessions.filter(session => session.category === selectedCategory);
     }
     
     // Apply duration filter
     if (selectedDuration !== "All") {
-      filteredSessions = filteredSessions.filter(session => {
+      sessions = sessions.filter(session => {
         if (selectedDuration === "Under 10 min") return session.duration < 10;
         if (selectedDuration === "10-15 min") return session.duration >= 10 && session.duration <= 15;
         if (selectedDuration === "Over 15 min") return session.duration > 15;
@@ -139,24 +139,24 @@ export default function MeditationPage() {
     
     // Apply level filter
     if (selectedLevel !== "All") {
-      filteredSessions = filteredSessions.filter(session =>
-        session.level === selectedLevel
-      );
+      sessions = sessions.filter(session => session.level === selectedLevel);
     }
     
-    setSessions(filteredSessions);
+    setFilteredSessions(sessions);
   }, [searchTerm, selectedCategory, selectedDuration, selectedLevel]);
 
   // Toggle favorite status
   const handleToggleFavorite = (id: number) => {
-    setSessions(sessions.map(session => 
-      session.id === id 
-        ? {...session, isFavorite: !session.isFavorite} 
-        : session
-    ));
+    setFilteredSessions(prevSessions => 
+      prevSessions.map(session => 
+        session.id === id 
+          ? { ...session, isFavorite: !session.isFavorite } 
+          : session
+      )
+    );
   };
 
-  // Handle session selection
+  // Handle session expansion
   const handleToggleExpand = (id: number) => {
     setExpandedSessionId(expandedSessionId === id ? null : id);
   };
@@ -166,7 +166,19 @@ export default function MeditationPage() {
     setCurrentlyPlaying(session.id);
     // In a real app, this would trigger audio playback
     console.log(`Playing meditation: ${session.title}`);
-    alert(`Now playing: ${session.title}`);
+    
+    // Stop playing after demonstration
+    setTimeout(() => {
+      setCurrentlyPlaying(null);
+    }, 3000);
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("All");
+    setSelectedDuration("All");
+    setSelectedLevel("All");
   };
 
   return (
@@ -199,6 +211,14 @@ export default function MeditationPage() {
             Filters
             <ChevronDown size={16} className={`transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </button>
+          {(searchTerm || selectedCategory !== "All" || selectedDuration !== "All" || selectedLevel !== "All") && (
+            <button 
+              onClick={handleClearFilters}
+              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
         
         {/* Filter Options */}
@@ -244,9 +264,23 @@ export default function MeditationPage() {
         )}
       </div>
       
+      {/* Results Summary */}
+      {filteredSessions.length > 0 && (
+        <div className="mb-4">
+          <p className="text-gray-600">
+            Showing {filteredSessions.length} of {MEDITATION_DATA.length} meditation sessions
+            {currentlyPlaying && (
+              <span className="ml-4 text-blue-600 font-medium">
+                ♪ Currently playing session {currentlyPlaying}
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+      
       {/* Meditation Results */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sessions.length === 0 ? (
+        {filteredSessions.length === 0 ? (
           <div className="col-span-3 flex flex-col items-center justify-center p-8 bg-gray-50 rounded-lg">
             <Headphones size={48} className="text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No meditation sessions found</h3>
@@ -255,7 +289,7 @@ export default function MeditationPage() {
             </p>
           </div>
         ) : (
-          sessions.map(session => (
+          filteredSessions.map(session => (
             <MeditationCard
               key={session.id}
               session={session}
