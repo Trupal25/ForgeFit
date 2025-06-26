@@ -51,6 +51,9 @@ model User {
   weightHistory       WeightHistory[]
   achievements        UserAchievement[]
   settings            UserSettings?
+  goals               UserGoal[]
+  dailyStats          DailyStats[]
+  progressSummaries   ProgressSummary[]
 }
 
 model UserSettings {
@@ -376,6 +379,107 @@ model WeightHistory {
   
   // Relationships
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// NEW: User Goals System
+model UserGoal {
+  id          String   @id @default(cuid())
+  userId      String
+  goalType    String   // Weight_Loss, Muscle_Gain, Cardio_Improvement, Strength, etc.
+  title       String   // "Lose 15 pounds"
+  description String?  // Optional detailed description
+  targetValue Float    // Target value (weight, muscle %, etc.)
+  currentValue Float   @default(0) // Current progress value
+  unit        String   // lbs, kg, minutes, reps, etc.
+  targetDate  DateTime // When they want to achieve this
+  status      String   @default("Active") // Active, Completed, Paused, Cancelled
+  priority    String   @default("Medium") // High, Medium, Low
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// NEW: Daily Health & Fitness Stats
+model DailyStats {
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime @unique @default(now()) // One record per day per user
+  
+  // Activity Stats
+  steps        Int?     @default(0)
+  stepsGoal    Int?     @default(10000)
+  caloriesBurned Int?   @default(0)
+  caloriesGoal   Int?   @default(2000)
+  activeMinutes  Int?   @default(0)
+  
+  // Hydration
+  waterIntake    Float? @default(0) // in liters
+  waterGoal      Float? @default(2.5)
+  
+  // Sleep
+  sleepHours     Float? // hours slept
+  sleepGoal      Float? @default(8)
+  sleepQuality   Int?   // 1-5 rating
+  
+  // Nutrition (basic)
+  mealsLogged    Int?   @default(0)
+  proteinGrams   Float? @default(0)
+  proteinGoal    Float? @default(150)
+  
+  // Workout
+  workoutsCompleted Int? @default(0)
+  workoutMinutes    Int? @default(0)
+  
+  // Mood & Energy
+  energyLevel    Int?   // 1-5 rating
+  moodRating     Int?   // 1-5 rating
+  stressLevel    Int?   // 1-5 rating
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, date])
+}
+
+// NEW: Progress Summary Data (weekly/monthly aggregates)
+model ProgressSummary {
+  id           String   @id @default(cuid())
+  userId       String
+  periodType   String   // "weekly", "monthly", "quarterly"
+  periodStart  DateTime // Start of the period
+  periodEnd    DateTime // End of the period
+  
+  // Aggregated Stats
+  totalWorkouts     Int    @default(0)
+  totalMinutes      Int    @default(0)
+  totalCaloriesBurned Int  @default(0)
+  avgStepsPerDay    Float  @default(0)
+  avgWaterPerDay    Float  @default(0)
+  avgSleepPerDay    Float  @default(0)
+  avgEnergyLevel    Float  @default(0)
+  avgMoodRating     Float  @default(0)
+  
+  // Weight Progress
+  startingWeight    Float?
+  endingWeight      Float?
+  weightChange      Float  @default(0)
+  
+  // Goals Progress
+  goalsCompleted    Int    @default(0)
+  goalsActive       Int    @default(0)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, periodType, periodStart])
 }
 
 // Achievement system

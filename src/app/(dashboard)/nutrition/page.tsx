@@ -28,12 +28,17 @@ export default function NutritionPage() {
       {showApiInfo && (
         <div className="bg-blue-50 p-4 rounded-lg mb-6 text-sm">
           <h3 className="font-semibold text-blue-800 mb-2">About Nutrition Lookup</h3>
-          <p className="mb-2">
-            The nutrition lookup feature uses the CalorieNinjas API to fetch real nutritional data for various foods.
-          </p>
-          <p>
-            Simply type a food name in the search box and click the search button to get detailed nutritional information.
-          </p>
+          <div className="space-y-2">
+            <p>
+              <strong>Text Search:</strong> Uses the CalorieNinjas API to fetch nutritional data for various foods. Simply type a food name and search.
+            </p>
+            <p>
+              <strong>Photo Analysis:</strong> Uses Google's Gemini AI to analyze food images and calculate nutrition content. Upload a photo of your meal for instant analysis.
+            </p>
+            <p className="text-blue-700 font-medium">
+              💡 Pro tip: The AI can identify multiple foods in one image and provide comprehensive nutrition breakdown!
+            </p>
+          </div>
         </div>
       )}
       
