@@ -16,7 +16,6 @@ interface GeneratedMeditation {
 }
 
 export class MeditationService {
-  private static readonly WONDERCRAFT_API_KEY = process.env.WONDERCRAFT_API_KEY;
   private static readonly ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 
   /**
@@ -145,6 +144,7 @@ export class MeditationService {
     // Return audio URL after generation and upload
     return 'https://your-storage.com/generated-meditation.mp3';
   }
+
 
   /**
    * Fetch meditation content from external APIs
