@@ -11,6 +11,18 @@ import {
   Tooltip,
 } from 'recharts'
 
+type AminoAcids = {
+  leucine?: string;
+  lysine?: string;
+  valine?: string;
+  isoleucine?: string;
+  threonine?: string;
+  methionine?: string;
+  phenylalanine?: string;
+  tryptophan?: string;
+  histidine?: string;
+}
+
 type NutritionItem = {
   name: string;
   calories: number;
@@ -24,6 +36,7 @@ type NutritionItem = {
   carbohydrates_total_g: number;
   fiber_g: number;
   sugar_g: number;
+  aminoAcids?: AminoAcids | null;
 }
 
 type NutritionResponse = {
@@ -43,6 +56,7 @@ type NutritionDetails = {
   cholesterol: number;
   fiber: number;
   sugar: number;
+  aminoAcids?: AminoAcids | null;
 }
 
 type FoodData = {
@@ -77,7 +91,7 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
     setError('');
     
     try {
-      const response = await fetch('/api/nutrition', {
+      const response = await fetch('/api/nutrition/text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -123,7 +137,8 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
             potassium: item.potassium_mg,
             cholesterol: item.cholesterol_mg,
             fiber: item.fiber_g,
-            sugar: item.sugar_g
+            sugar: item.sugar_g,
+            aminoAcids: item.aminoAcids
           }
         });
       } else {
@@ -155,6 +170,16 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
       console.error('Error saving search history:', err);
     }
   };
+
+  // Helper function to format amino acid values
+  const formatAminoAcid = (value: string | undefined) => {
+    if (!value) return 'N/A';
+    return value.includes('mg') || value.includes('g') ? value : `${value}mg`;
+  };
+
+  // Check if amino acids data is available
+  const hasAminoAcids = foodData?.details?.aminoAcids && 
+    Object.values(foodData.details.aminoAcids).some(value => value && value.trim() !== '');
   
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm">
@@ -236,14 +261,42 @@ const NutritionCard: React.FC<NutritionCardProps> = ({ initialQuery = '' }) => {
           </div>
           
           {foodData.details && (
-            <div className="mt-6 border-t pt-4">
-              <h4 className="font-medium mb-2">Additional Information</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>Serving Size: <span className="font-medium">{foodData.details.servingSize}g</span></div>
-                <div>Sodium: <span className="font-medium">{foodData.details.sodium}mg</span></div>
-                <div>Fiber: <span className="font-medium">{foodData.details.fiber}g</span></div>
-                <div>Sugar: <span className="font-medium">{foodData.details.sugar}g</span></div>
+            <div className="mt-6 space-y-4">
+              {/* Basic Nutrition Information */}
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-2">Nutrition Information</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Serving Size: <span className="font-medium">{foodData.details.servingSize}g</span></div>
+                  <div>Sodium: <span className="font-medium">{foodData.details.sodium}mg</span></div>
+                  <div>Fiber: <span className="font-medium">{foodData.details.fiber}g</span></div>
+                  <div>Sugar: <span className="font-medium">{foodData.details.sugar}g</span></div>
+                  <div>Potassium: <span className="font-medium">{foodData.details.potassium}mg</span></div>
+                  <div>Cholesterol: <span className="font-medium">{foodData.details.cholesterol}mg</span></div>
+                </div>
               </div>
+
+              {/* Amino Acids Section - Only show if data is available */}
+              {hasAminoAcids && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    Essential Amino Acids Profile
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    {foodData.details.aminoAcids && Object.entries(foodData.details.aminoAcids).map(([key, value]) => (
+                      value && (
+                        <div key={key} className="bg-gray-50 p-2 rounded">
+                          <div className="capitalize text-gray-600 text-xs">{key}</div>
+                          <div className="font-medium text-gray-800">{formatAminoAcid(value)}</div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 Amino acids help build and repair muscle tissue
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

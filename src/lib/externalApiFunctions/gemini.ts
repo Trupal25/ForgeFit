@@ -2,6 +2,10 @@ import  { Type, GoogleGenAI, GenerateContentResponse, Image} from '@google/genai
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 import { NextResponse } from "next/server";
+import useCalorieNinjas from './calorieNinjas';
+
+// Type definitions for modular usage
+export type NutritionProvider = 'gemini' | 'calorie-ninja';
 
 const responseSchema = {
     type: Type.ARRAY,
@@ -10,36 +14,45 @@ const responseSchema = {
       properties: {
         name: { type: Type.STRING },
         calories: { type: Type.NUMBER },
-        servingSize: { type: Type.STRING },
-        protein: { type: Type.STRING },
-        carbohydrates: { type: Type.STRING },
-        fats: { type: Type.STRING },
-        saturatedFats: { type: Type.STRING },
-        unsaturatedFats: { type: Type.STRING },
-        cholesterol: { type: Type.STRING },
-        fiber: { type: Type.STRING },
-        sugar: { type: Type.STRING },
+        serving_size_g: { type: Type.NUMBER },
+        fat_total_g: { type: Type.NUMBER },
+        fat_saturated_g: { type: Type.NUMBER },
+        protein_g: { type: Type.NUMBER },
+        sodium_mg: { type: Type.NUMBER },
+        potassium_mg: { type: Type.NUMBER },
+        cholesterol_mg: { type: Type.NUMBER },
+        carbohydrates_total_g: { type: Type.NUMBER },
+        fiber_g: { type: Type.NUMBER },
+        sugar_g: { type: Type.NUMBER },
         aminoAcids: {
           type: Type.OBJECT,
           properties: {
             leucine: { type: Type.STRING },
             lysine: { type: Type.STRING },
             valine: { type: Type.STRING },
+            isoleucine: { type: Type.STRING },
+            threonine: { type: Type.STRING },
+            methionine: { type: Type.STRING },
+            phenylalanine: { type: Type.STRING },
+            tryptophan: { type: Type.STRING },
+            histidine: { type: Type.STRING },
           },
+          nullable: true,
         },
       },
       propertyOrdering: [
         "name",
         "calories",
-        "servingSize",
-        "protein",
-        "carbohydrates",
-        "fats",
-        "saturatedFats",
-        "unsaturatedFats",
-        "cholesterol",
-        "fiber",
-        "sugar",
+        "serving_size_g",
+        "fat_total_g",
+        "fat_saturated_g",
+        "protein_g",
+        "sodium_mg",
+        "potassium_mg",
+        "cholesterol_mg",
+        "carbohydrates_total_g",
+        "fiber_g",
+        "sugar_g",
         "aminoAcids"
       ],
     },
@@ -48,10 +61,11 @@ const responseSchema = {
 
 export async function useGeminiTextApi(search:string) {   
     
+  console.log("used gemini api")
           const response:GenerateContentResponse = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents:
-              `List the nutrient content of the following food item be as precise as possible - ${search}`,
+              `Analyze the nutritional content of the following food item and provide detailed macronutrient information in grams and milligrams as appropriate. Include amino acid profile if available. Be as precise as possible for a standard serving size - ${search}`,
             config: {
               responseMimeType: "application/json",
               responseSchema: responseSchema,
@@ -59,7 +73,7 @@ export async function useGeminiTextApi(search:string) {
           });
           const result = JSON.parse(response.text!)
           return NextResponse.json({
-            response: result
+            items: result
           })
     }
 
@@ -72,7 +86,7 @@ export async function useGeminiImageApi(base64ImageFile:Base64URLString) {
         data: base64ImageFile,
       },
     },
-    { text: "List the nutrient content of the following food item / items in the image" },
+    { text: "Analyze the nutritional content of all food items visible in this image. Provide detailed macronutrient information in grams and milligrams as appropriate. Include amino acid profiles if available for standard serving sizes." },
   ];
   
   try{
@@ -88,14 +102,60 @@ export async function useGeminiImageApi(base64ImageFile:Base64URLString) {
   const result = JSON.parse(response.text!);
 
   return NextResponse.json({
-    response:result
+    items: result
   })
   
 }catch(err){
-  console.log("Error : ",err)
-  NextResponse.json({
-    message:"service not available now"
-  })
+  console.log("Gemini Image API error:", err)
+  return NextResponse.json({
+    error: "Failed to process image with Gemini API"
+  }, { status: 500 })
 }
 
+}
+
+// Modular nutrition service functions - Gemini as default, Calorie Ninja as fallback
+export async function getNutritionData(search: string, provider: NutritionProvider = 'gemini') {
+  console.log(`Using ${provider} provider for nutrition data`);
+  
+  switch (provider) {
+    case 'gemini':
+      return await useGeminiTextApi(search);
+    case 'calorie-ninja':
+      return await useCalorieNinjas(search);
+    default:
+      return NextResponse.json({
+        error: "Invalid nutrition provider specified"
+      }, { status: 400 });
+  }
+}
+
+export async function getNutritionDataWithFallback(search: string, primaryProvider: NutritionProvider = 'gemini') {
+  const fallbackProvider: NutritionProvider = primaryProvider === 'gemini' ? 'calorie-ninja' : 'gemini';
+  
+  try {
+    console.log(`Trying primary provider: ${primaryProvider}`);
+    const response = await getNutritionData(search, primaryProvider);
+    
+    // Check if response was successful (status < 400)
+    if (response.status < 400) {
+      return response;
+    }
+    
+    console.log(`Primary provider failed, trying fallback: ${fallbackProvider}`);
+    return await getNutritionData(search, fallbackProvider);
+    
+  } catch (error) {
+    console.log(`Primary provider error, trying fallback: ${fallbackProvider}`);
+    console.error(`${primaryProvider} error:`, error);
+    
+    try {
+      return await getNutritionData(search, fallbackProvider);
+    } catch (fallbackError) {
+      console.error(`${fallbackProvider} error:`, fallbackError);
+      return NextResponse.json({
+        error: "Both nutrition providers failed"
+      }, { status: 500 });
+    }
+  }
 }

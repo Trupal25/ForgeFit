@@ -10,7 +10,17 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
+    "populate-exercises": "ts-node --project scripts/tsconfig.json scripts/populate-exercises.ts",
+    "test-exercises": "ts-node --project scripts/tsconfig.json scripts/test-populate-exercises.ts",
+    "check-db": "ts-node --project scripts/tsconfig.json scripts/check-database.ts",
+    "fetch-exercises": "ts-node --project scripts/tsconfig.json scripts/fetch-all-exercises.ts",
+    "populate-complete-exercises": "ts-node --project scripts/tsconfig.json scripts/populate-complete-exercises.ts",
+    "debug-connection": "ts-node --project scripts/tsconfig.json scripts/debug-connection.ts",
+    "show-db-info": "ts-node --project scripts/tsconfig.json scripts/show-db-info.ts",
+    "db:reset": "prisma migrate reset --force",
+    "db:setup": "prisma migrate dev && npm run populate-exercises",
+    "db:setup-complete": "prisma migrate dev && npm run fetch-exercises && npm run populate-complete-exercises"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

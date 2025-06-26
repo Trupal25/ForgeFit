@@ -103,7 +103,7 @@ model Exercise {
   id              Int      @id @default(autoincrement())
   name            String
   description     String
-  instructions    String
+  instructions    String[]
   muscleGroups    String[]   // Primary muscles targeted (comma-separated)
   equipment       String   // Required equipment (comma-separated)
   difficultyLevel String   // Beginner, Intermediate, Advanced

@@ -14,6 +14,7 @@ const response = await fetch(
     }   
 );
     // api handling logic boi
+    console.log("used ninja")
     if (!response.ok) {
         const errorText = await response.text();
         console.error("API Error:", errorText);
