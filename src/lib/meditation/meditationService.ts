@@ -91,11 +91,8 @@ export class MeditationService {
    * Convert text to speech using ElevenLabs or Azure Speech
    */
   private static async generateAudio(script: string, voice: string): Promise<string> {
-    if (this.ELEVENLABS_API_KEY) {
       return await this.generateWithElevenLabs(script, voice);
-    } else {
-      return await this.generateWithAzureSpeech(script, voice);
-    }
+    
   }
 
   private static async generateWithElevenLabs(script: string, voice: string): Promise<string> {
@@ -127,21 +124,6 @@ export class MeditationService {
 
     // In a real implementation, you'd upload this to cloud storage
     // and return the URL
-    return 'https://your-storage.com/generated-meditation.mp3';
-  }
-
-  private static async generateWithAzureSpeech(script: string, voice: string): Promise<string> {
-    // Convert to SSML format for Azure Speech
-    const ssmlScript = `
-      <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
-        <voice name="en-US-AriaNeural" style="calm">
-          ${script.replace(/\[PAUSE (\d+)s\]/g, '<break time="$1s"/>')}
-        </voice>
-      </speak>
-    `;
-
-    // Implement Azure Speech Service integration here
-    // Return audio URL after generation and upload
     return 'https://your-storage.com/generated-meditation.mp3';
   }
 
