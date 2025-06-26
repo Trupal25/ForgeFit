@@ -118,3 +118,4 @@ This project is licensed under the Creative Commons NonCommercial (CC BY-NC) Lic
 ## Acknowledgments
 
 Thanks to all contributors and the CalorieNinja API for nutritional data.
+# Deployment fix
