@@ -1,18 +1,25 @@
 import React, { Suspense } from 'react';
 import SignInContent from './SignInContent';
+import { Loader2 } from 'lucide-react';
 
-export default function SignIn() {
-    
+// This is the static page component for /signin
+// It uses Suspense to handle the loading state of the client component
+export default function SignInPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </div>
-        }>
+        <Suspense fallback={<LoadingSpinner />}>
             <SignInContent />
         </Suspense>
     );
 }
+
+// A simple loading spinner component to be shown during suspense
+const LoadingSpinner = () => {
+    return (
+        <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+            <div className="flex flex-col items-center text-center">
+                <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+                <p className="text-gray-600 mt-4">Loading your session...</p>
+            </div>
+        </div>
+    );
+};
