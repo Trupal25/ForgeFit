@@ -3,14 +3,10 @@ import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 export async function middleware(req: NextRequest) {
-  // Temporarily disabled for testing - just allow everything through
-  return NextResponse.next();
-  
-  /* COMMENTED OUT FOR TESTING
   const path = req.nextUrl.pathname;
   
   // Define public paths that don't require authentication
-  const publicPaths = ['/signin', '/signup'];
+  const publicPaths = ['/signin', '/signup', '/test'];
   const isPublicPath = publicPaths.includes(path);
   
   // Check if the path is for public assets (exclude from auth check)
@@ -50,7 +46,6 @@ export async function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
-  */
 }
 
 export const config = {
